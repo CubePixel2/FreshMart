@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head(${'Invoice ' + sale.invoiceNumber})}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('sales')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Invoice Details')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container">
+            <!-- Action Bar (Hidden on Print) -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 no-print" data-aos="fade-down">
+                <div>
+                    <a th:href="@{/sales}" class="btn btn-outline-secondary btn-sm mb-2">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Sales
+                    </a>
+                    <h3 class="fw-bold mb-0">Retail Tax Invoice</h3>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary-gradient d-flex align-items-center gap-2" onclick="window.print()">
+                        <i class="bi bi-printer-fill"></i>
+                        <span>Print Invoice</span>
+                    </button>
+                    <a th:href="@{/pos}" class="btn btn-light d-flex align-items-center gap-2">
+                        <i class="bi bi-cart-plus"></i>
+                        <span>New Sale</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Printable Invoice Card -->
+            <div class="invoice-card" data-aos="zoom-in" data-aos-duration="500">
+                <!-- Store Header -->
+                <div class="text-center pb-4 mb-4 border-bottom">
+                    <div class="d-inline-flex align-items-center justify-content-center text-success mb-2">
+                        <i class="bi bi-cart4 fs-1"></i>
+                    </div>
+                    <h3 class="fw-extrabold text-dark mb-1">Fresh<span class="text-success">Mart</span> Supermarket</h3>
+                    <p class="text-muted small mb-1">Door No. 42/1890, MG Road, Ravipuram, Kochi, Kerala - 682016</p>
+                    <p class="text-muted small mb-1">Phone: +91 484 2356789 / +91 98470 11223 &bull; Email: kochi@freshmart.in</p>
+                    <p class="text-muted small mb-0">
+                        <span class="badge bg-light text-dark border me-1">GSTIN: <strong>32AABCF9876K1Z9</strong> (Kerala - 32)</span>
+                        <span class="badge bg-light text-dark border">FSSAI Lic: <strong>11322007000456</strong></span>
+                    </p>
+                </div>
+
+                <!-- Invoice Meta Details -->
+                <div class="row g-3 mb-4 pb-3 border-bottom text-sm">
+                    <div class="col-6">
+                        <span class="text-muted small d-block">Tax Invoice No.</span>
+                        <span class="fw-bold text-dark fs-6" th:text="${sale.invoiceNumber}">INV-20260915-0001</span>
+
+                        <span class="text-muted small d-block mt-2">Date &amp; Time</span>
+                        <span class="fw-medium text-dark" th:text="${#temporals.format(sale.saleDate, 'dd MMM yyyy, hh:mm a')}">15 Sep 2026, 10:30 AM</span>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="text-muted small d-block">Billed By (Cashier)</span>
+                        <span class="fw-bold text-dark" th:text="${sale.cashier != null ? sale.cashier.fullName : 'Terminal #1'}">Cashier</span>
+
+                        <span class="text-muted small d-block mt-2">Customer Details</span>
+                        <span class="fw-bold text-dark" th:text="${sale.customerName}">Walk-in Customer</span>
+                        <div class="text-muted small" th:if="${sale.customerPhone}" th:text="${sale.customerPhone}">Phone</div>
+                    </div>
+                </div>
+
+                <!-- Line Items Table -->
+                <div class="table-responsive mb-4">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="text-muted small text-uppercase border-bottom">
+                            <tr>
+                                <th>Item Details</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Rate (₹)</th>
+                                <th class="text-end">Total (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${sale.items}">
+                                <td class="py-2">
+                                    <div class="fw-semibold text-dark" th:text="${item.productName}">Product</div>
+                                </td>
+                                <td class="text-center py-2" th:text="${item.quantity}">1</td>
+                                <td class="text-end py-2 text-muted" th:text="${'₹' + #numbers.formatDecimal(item.unitPrice, 1, 2)}">₹0.00</td>
+                                <td class="text-end py-2 fw-bold text-dark" th:text="${'₹' + #numbers.formatDecimal(item.subtotal, 1, 2)}">₹0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Financial Summary Breakdown -->
+                <div class="border-top pt-3 mb-4">
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>Taxable Subtotal</span>
+                        <span class="fw-semibold text-dark" th:text="${'₹' + #numbers.formatDecimal(sale.subtotal, 1, 2)}">₹0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>CGST (2.5%)</span>
+                        <span class="fw-semibold text-dark" th:text="${'₹' + #numbers.formatDecimal(sale.cgstAmount, 1, 2)}">₹0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>SGST (2.5%)</span>
+                        <span class="fw-semibold text-dark" th:text="${'₹' + #numbers.formatDecimal(sale.sgstAmount, 1, 2)}">₹0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span class="fw-medium">Total Kerala GST (5.0%)</span>
+                        <span class="fw-semibold text-dark" th:text="${'₹' + #numbers.formatDecimal(sale.taxAmount, 1, 2)}">₹0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mb-2" th:if="${sale.discountAmount != null and sale.discountAmount > 0}">
+                        <span>Discount Applied</span>
+                        <span class="fw-semibold text-danger" th:text="${'-₹' + #numbers.formatDecimal(sale.discountAmount, 1, 2)}">-₹0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-top border-bottom border-dark border-2 my-2">
+                        <span class="fw-extrabold fs-5 text-dark">Grand Total</span>
+                        <span class="fw-extrabold fs-4 text-success" th:text="${'₹' + #numbers.formatDecimal(sale.grandTotal, 1, 2)}">₹0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mt-2">
+                        <span>Payment Mode</span>
+                        <span class="fw-bold text-dark" th:text="${sale.paymentMethod.displayName}">Cash</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mt-1">
+                        <span>Amount Paid</span>
+                        <span class="fw-semibold text-dark" th:text="${'₹' + #numbers.formatDecimal(sale.amountPaid, 1, 2)}">₹0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mt-1" th:if="${sale.changeReturned != null and sale.changeReturned > 0}">
+                        <span>Change Returned</span>
+                        <span class="fw-bold text-primary" th:text="${'₹' + #numbers.formatDecimal(sale.changeReturned, 1, 2)}">₹0.00</span>
+                    </div>
+                </div>
+
+                <!-- Receipt Footer / Barcode decoration -->
+                <div class="text-center pt-3 text-muted small border-top">
+                    <p class="mb-1 fw-bold text-dark">Thank you for shopping at FreshMart Supermarket, Kochi!</p>
+                    <p class="mb-1 text-success fw-semibold" style="font-size: 0.85rem;">നന്ദി, വീണ്ടും സന്ദർശിക്കുക (Visit Again!)</p>
+                    <p class="mb-2 text-muted" style="font-size: 0.75rem;">Prices inclusive of all taxes. Kerala GST State Code: 32.</p>
+                    <div class="text-secondary font-monospace" style="letter-spacing: 0.25em;">* * [[${sale.invoiceNumber}]] * *</div>
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+<script th:if="${autoPrint}">
+    window.addEventListener('load', function () {
+        setTimeout(function () {
+            window.print();
+        }, 600);
+    });
+</script>
+
+</body>
+</html>

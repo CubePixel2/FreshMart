@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Products')}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('products')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Product Inventory')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" data-aos="fade-down">
+                <div>
+                    <h3 class="fw-bold mb-1">Product Inventory</h3>
+                    <p class="text-muted mb-0">Manage grocery catalog, pricing, and stock levels (<span th:text="${totalCount}">18</span> products)</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/products/low-stock}" class="btn btn-outline-danger d-flex align-items-center gap-2">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>Low Stock Alerts</span>
+                    </a>
+                    <a th:href="@{/products/new}" class="btn btn-primary-gradient d-flex align-items-center gap-2" sec:authorize="hasRole('ADMIN')">
+                        <i class="bi bi-plus-lg"></i>
+                        <span>Add Product</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filters Bar -->
+            <div class="card-modern p-3 mb-4" data-aos="fade-up">
+                <form th:action="@{/products}" method="get" class="row g-2 align-items-center">
+                    <div class="col-12 col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" name="search" th:value="${searchQuery}" class="form-control border-start-0 ps-0" placeholder="Search product name or barcode...">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <select name="categoryId" class="form-select" onchange="this.form.submit()">
+                            <option value="">All Categories</option>
+                            <option th:each="cat : ${categories}"
+                                    th:value="${cat.id}"
+                                    th:text="${cat.name}"
+                                    th:selected="${selectedCategoryId == cat.id}">
+                                Category
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary-gradient flex-grow-1">Filter</button>
+                        <a th:href="@{/products}" class="btn btn-light" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Products Table -->
+            <div class="card-modern overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small text-uppercase">
+                            <tr>
+                                <th>Product &amp; SKU</th>
+                                <th>Category</th>
+                                <th>Supplier</th>
+                                <th>Cost</th>
+                                <th>Price</th>
+                                <th>Margin</th>
+                                <th>Stock Level</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${products}">
+                                <td>
+                                    <div class="fw-bold text-dark" th:text="${p.name}">Product Name</div>
+                                    <div class="text-muted small d-flex align-items-center gap-1">
+                                        <i class="bi bi-upc-scan"></i>
+                                        <span th:text="${p.barcode}">Barcode</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge"
+                                          th:style="${'background-color: ' + (p.category != null ? p.category.badgeColor : '#10b981') + '22; color: ' + (p.category != null ? p.category.badgeColor : '#10b981') + '; border: 1px solid ' + (p.category != null ? p.category.badgeColor : '#10b981') + '44;'}"
+                                          th:text="${p.category != null ? p.category.name : 'General'}">Category</span>
+                                </td>
+                                <td>
+                                    <span class="text-secondary small" th:text="${p.supplier != null ? p.supplier.name : '-'}">Supplier</span>
+                                </td>
+                                <td class="text-muted small" th:text="${'₹' + #numbers.formatDecimal(p.costPrice, 1, 2)}">₹0.00</td>
+                                <td class="fw-bold text-success" th:text="${'₹' + #numbers.formatDecimal(p.sellingPrice, 1, 2)}">₹0.00</td>
+                                <td>
+                                    <span class="badge bg-light text-secondary border small" th:text="${'+' + #numbers.formatDecimal(p.getProfitMarginPercentage(), 1, 1) + '%'}">+25%</span>
+                                </td>
+                                <td>
+                                    <span th:if="${p.isOutOfStock()}" class="badge bg-danger rounded-pill px-3 py-1">Out of Stock</span>
+                                    <span th:if="${p.isLowStock()}" class="badge bg-warning text-dark rounded-pill px-3 py-1 animate-pulse-danger" th:text="${p.stockQuantity + ' ' + p.unit + ' (Low)'}">Low</span>
+                                    <span th:if="${!p.isOutOfStock() and !p.isLowStock()}" class="badge bg-success-subtle text-success rounded-pill px-3 py-1" th:text="${p.stockQuantity + ' ' + p.unit}">In Stock</span>
+                                    <div class="text-muted" style="font-size: 0.7rem;" th:text="${'Min: ' + p.minStockThreshold}">Min: 10</div>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <button type="button" class="btn btn-sm btn-light text-primary rounded-circle p-1"
+                                                title="Quick Restock"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#restockModal"
+                                                th:attr="data-id=${p.id}, data-name=${p.name}, data-unit=${p.unit}"
+                                                onclick="openRestockModal(this)">
+                                            <i class="bi bi-box-arrow-in-down"></i>
+                                        </button>
+                                        <a th:href="@{'/products/edit/' + ${p.id}}" class="btn btn-sm btn-light text-secondary rounded-circle p-1" title="Edit" sec:authorize="hasRole('ADMIN')">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <form th:action="@{'/products/delete/' + ${p.id}}" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this product?');" sec:authorize="hasRole('ADMIN')">
+                                            <button type="submit" class="btn btn-sm btn-light text-danger rounded-circle p-1" title="Delete">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(products)}">
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="bi bi-search fs-2 mb-2 d-block opacity-50"></i>
+                                    No products found matching your filter.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<!-- Restock Modal -->
+<div class="modal fade" id="restockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <form th:action="@{/products/restock}" method="post">
+                <input type="hidden" name="productId" id="restock-product-id">
+                <input type="hidden" name="redirect" value="products">
+
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-box-arrow-in-down text-primary me-2"></i>Quick Restock Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Product</label>
+                        <h6 class="fw-bold text-dark mb-0" id="restock-product-name">Product Name</h6>
+                    </div>
+                    <div class="mb-3">
+                        <label for="restock-quantity" class="form-label fw-semibold small text-secondary">Units to Add</label>
+                        <div class="input-group">
+                            <input type="number" name="quantity" id="restock-quantity" class="form-control" value="10" min="1" required>
+                            <span class="input-group-text bg-light text-muted" id="restock-unit-label">pcs</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-gradient px-4">Add to Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+<script>
+    function openRestockModal(btn) {
+        document.getElementById('restock-product-id').value = btn.getAttribute('data-id');
+        document.getElementById('restock-product-name').textContent = btn.getAttribute('data-name');
+        document.getElementById('restock-unit-label').textContent = btn.getAttribute('data-unit');
+    }
+</script>
+
+</body>
+</html>

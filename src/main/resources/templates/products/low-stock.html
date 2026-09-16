@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Low Stock Alerts')}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('low-stock')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Low Stock Alerts')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" data-aos="fade-down">
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-danger rounded-pill p-2"><i class="bi bi-exclamation-triangle-fill"></i></span>
+                        <h3 class="fw-bold mb-0">Low Stock Alerts</h3>
+                    </div>
+                    <p class="text-muted mb-0 mt-1">Immediate attention required: products at or below safety stock threshold</p>
+                </div>
+                <a th:href="@{/products}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>All Products</span>
+                </a>
+            </div>
+
+            <!-- Alert Overview Banner -->
+            <div class="card border-0 bg-danger bg-opacity-10 mb-4 animate-pulse-danger" data-aos="fade-up">
+                <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-danger text-white rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-bell-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold text-danger">
+                                <span th:text="${totalCount}">4</span> Items Require Immediate Replenishment
+                            </h5>
+                            <span class="text-muted small">Prevent out-of-stock situations during peak checkout hours.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Stock Table -->
+            <div class="card-modern overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small text-uppercase">
+                            <tr>
+                                <th>Product</th>
+                                <th>Barcode / SKU</th>
+                                <th>Category</th>
+                                <th>Supplier</th>
+                                <th>Current Stock</th>
+                                <th>Safety Threshold</th>
+                                <th>Deficit</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${products}">
+                                <td>
+                                    <div class="fw-bold text-dark" th:text="${p.name}">Product Name</div>
+                                    <div class="text-muted small" th:text="${'₹' + #numbers.formatDecimal(p.sellingPrice, 1, 2) + ' per ' + p.unit}">Price</div>
+                                </td>
+                                <td>
+                                    <code class="text-secondary fw-semibold" th:text="${p.barcode}">89010001</code>
+                                </td>
+                                <td>
+                                    <span class="badge"
+                                          th:style="${'background-color: ' + (p.category != null ? p.category.badgeColor : '#10b981') + '22; color: ' + (p.category != null ? p.category.badgeColor : '#10b981') + '; border: 1px solid ' + (p.category != null ? p.category.badgeColor : '#10b981') + '44;'}"
+                                          th:text="${p.category != null ? p.category.name : 'General'}">Category</span>
+                                </td>
+                                <td>
+                                    <span class="text-secondary small" th:text="${p.supplier != null ? p.supplier.name : '-'}">Supplier</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger rounded-pill px-3 py-1 fw-bold fs-6 animate-pulse-danger"
+                                          th:text="${p.stockQuantity + ' ' + p.unit}">2 pcs</span>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold text-secondary" th:text="${p.minStockThreshold + ' ' + p.unit}">10 pcs</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning-subtle text-danger fw-bold border border-danger-subtle"
+                                          th:text="${'-' + (p.minStockThreshold - p.stockQuantity) + ' ' + p.unit}">-8 pcs</span>
+                                </td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm btn-primary-gradient px-3 py-1"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#restockModal"
+                                            th:attr="data-id=${p.id}, data-name=${p.name}, data-unit=${p.unit}"
+                                            onclick="openRestockModal(this)">
+                                        <i class="bi bi-box-arrow-in-down me-1"></i>Restock
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(products)}">
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="bi bi-shield-check text-success fs-1 mb-2 d-block"></i>
+                                    <h6 class="fw-bold text-secondary">All stock levels are optimal!</h6>
+                                    <p class="text-muted small mb-0">No items currently fall below their safety threshold.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<!-- Restock Modal -->
+<div class="modal fade" id="restockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <form th:action="@{/products/restock}" method="post">
+                <input type="hidden" name="productId" id="restock-product-id">
+                <input type="hidden" name="redirect" value="low-stock">
+
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-box-arrow-in-down text-primary me-2"></i>Quick Restock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Product to Restock</label>
+                        <h6 class="fw-bold text-dark mb-0" id="restock-product-name">Product Name</h6>
+                    </div>
+                    <div class="mb-3">
+                        <label for="restock-quantity" class="form-label fw-semibold small text-secondary">Additional Units</label>
+                        <div class="input-group">
+                            <input type="number" name="quantity" id="restock-quantity" class="form-control" value="20" min="1" required>
+                            <span class="input-group-text bg-light text-muted" id="restock-unit-label">pcs</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-gradient px-4">Confirm Restock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+<script>
+    function openRestockModal(btn) {
+        document.getElementById('restock-product-id').value = btn.getAttribute('data-id');
+        document.getElementById('restock-product-name').textContent = btn.getAttribute('data-name');
+        document.getElementById('restock-unit-label').textContent = btn.getAttribute('data-unit');
+    }
+</script>
+
+</body>
+</html>

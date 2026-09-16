@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Sales History')}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('sales')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Sales & Invoices')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" data-aos="fade-down">
+                <div>
+                    <h3 class="fw-bold mb-1">Sales &amp; Invoices</h3>
+                    <p class="text-muted mb-0">Track all completed retail transactions and customer bills</p>
+                </div>
+                <a th:href="@{/pos}" class="btn btn-primary-gradient d-flex align-items-center gap-2">
+                    <i class="bi bi-cart-plus-fill"></i>
+                    <span>New POS Sale</span>
+                </a>
+            </div>
+
+            <!-- Sales Table Card -->
+            <div class="card-modern overflow-hidden" data-aos="fade-up">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small text-uppercase">
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Date &amp; Time</th>
+                                <th>Customer</th>
+                                <th>Cashier</th>
+                                <th>Payment Method</th>
+                                <th>Items Count</th>
+                                <th>Discount</th>
+                                <th>Grand Total</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="sale : ${sales}">
+                                <td>
+                                    <a th:href="@{'/sales/' + ${sale.id}}" class="fw-bold text-primary text-decoration-none" th:text="${sale.invoiceNumber}">INV-001</a>
+                                </td>
+                                <td>
+                                    <div class="text-dark small fw-medium" th:text="${#temporals.format(sale.saleDate, 'yyyy-MM-dd HH:mm')}">Date</div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark" th:text="${sale.customerName}">Walk-in Customer</div>
+                                    <div class="text-muted small" th:text="${sale.customerPhone}">Phone</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border" th:text="${sale.cashier != null ? sale.cashier.fullName : 'Staff'}">Cashier</span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="${sale.paymentMethod.name() == 'CASH' ? 'badge-soft-success' : (sale.paymentMethod.name() == 'CARD' ? 'badge-soft-primary' : 'badge-soft-warning')}">
+                                        <i th:class="${'bi ' + sale.paymentMethod.iconClass + ' me-1'}"></i>
+                                        <span th:text="${sale.paymentMethod.displayName}">Cash</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1" th:text="${sale.totalItemCount + ' units'}">0 units</span>
+                                </td>
+                                <td class="text-muted small" th:text="${'₹' + #numbers.formatDecimal(sale.discountAmount, 1, 2)}">₹0.00</td>
+                                <td>
+                                    <span class="fw-bold text-success fs-6" th:text="${'₹' + #numbers.formatDecimal(sale.grandTotal, 1, 2)}">₹0.00</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <a th:href="@{'/sales/' + ${sale.id}}" class="btn btn-sm btn-light text-primary rounded-circle p-1" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a th:href="@{'/sales/' + ${sale.id} + '/invoice'}" class="btn btn-sm btn-light text-secondary rounded-circle p-1" title="Print Receipt">
+                                            <i class="bi bi-printer"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(sales)}">
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    <i class="bi bi-receipt fs-1 mb-2 d-block opacity-50"></i>
+                                    No sales transactions found yet.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+
+</body>
+</html>

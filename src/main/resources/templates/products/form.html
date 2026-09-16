@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head(${isNew ? 'New Product' : 'Edit Product'})}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('products')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar(${isNew ? 'Add Product' : 'Edit Product'})}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" data-aos="fade-down">
+                <div>
+                    <h3 class="fw-bold mb-1" th:text="${isNew ? 'Add New Product' : 'Edit Product'}">Product Form</h3>
+                    <p class="text-muted mb-0">Fill in the product details, supplier info, and stock thresholds</p>
+                </div>
+                <a th:href="@{/products}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Back to Inventory</span>
+                </a>
+            </div>
+
+            <div class="row justify-content-center" data-aos="fade-up">
+                <div class="col-12 col-lg-9">
+                    <div class="card-modern p-4 p-md-5">
+                        <form th:action="@{/products/save}" th:object="${product}" method="post">
+                            <input type="hidden" th:field="*{id}" />
+
+                            <div class="row g-3">
+                                <!-- Product Name -->
+                                <div class="col-12 col-md-8">
+                                    <label for="name" class="form-label fw-semibold small text-secondary">Product Name *</label>
+                                    <input type="text" th:field="*{name}" id="name" class="form-control" placeholder="e.g. Organic Gala Apples" required>
+                                </div>
+
+                                <!-- Barcode / SKU -->
+                                <div class="col-12 col-md-4">
+                                    <label for="barcode" class="form-label fw-semibold small text-secondary">Barcode / SKU *</label>
+                                    <div class="input-group">
+                                        <input type="text" th:field="*{barcode}" id="barcode" class="form-control" placeholder="e.g. 89010025" required>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="generateSku()" title="Generate Random SKU">
+                                            <i class="bi bi-magic"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Category -->
+                                <div class="col-12 col-md-6">
+                                    <label for="category" class="form-label fw-semibold small text-secondary">Category *</label>
+                                    <select th:field="*{category.id}" id="category" class="form-select" required>
+                                        <option value="">Select Category</option>
+                                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Category</option>
+                                    </select>
+                                </div>
+
+                                <!-- Supplier -->
+                                <div class="col-12 col-md-6">
+                                    <label for="supplier" class="form-label fw-semibold small text-secondary">Supplier</label>
+                                    <select th:field="*{supplier.id}" id="supplier" class="form-select">
+                                        <option value="">Select Supplier</option>
+                                        <option th:each="sup : ${suppliers}" th:value="${sup.id}" th:text="${sup.name}">Supplier</option>
+                                    </select>
+                                </div>
+
+                                <!-- Cost Price -->
+                                <div class="col-12 col-md-4">
+                                    <label for="costPrice" class="form-label fw-semibold small text-secondary">Cost Price (₹) *</label>
+                                    <input type="number" step="0.01" th:field="*{costPrice}" id="costPrice" class="form-control" placeholder="0.00" required oninput="calculateMargin()">
+                                </div>
+
+                                <!-- Selling Price -->
+                                <div class="col-12 col-md-4">
+                                    <label for="sellingPrice" class="form-label fw-semibold small text-secondary">Selling Price (₹) *</label>
+                                    <input type="number" step="0.01" th:field="*{sellingPrice}" id="sellingPrice" class="form-control" placeholder="0.00" required oninput="calculateMargin()">
+                                </div>
+
+                                <!-- Margin Preview -->
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label fw-semibold small text-secondary">Expected Margin</label>
+                                    <div class="form-control bg-light d-flex justify-content-between align-items-center" id="marginPreview">
+                                        <span class="text-muted small">Profit:</span>
+                                        <span class="fw-bold text-success" id="marginText">₹0.00 (0%)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Initial / Current Stock -->
+                                <div class="col-12 col-md-4">
+                                    <label for="stockQuantity" class="form-label fw-semibold small text-secondary">Stock Quantity *</label>
+                                    <input type="number" th:field="*{stockQuantity}" id="stockQuantity" class="form-control" min="0" required>
+                                </div>
+
+                                <!-- Min Threshold -->
+                                <div class="col-12 col-md-4">
+                                    <label for="minStockThreshold" class="form-label fw-semibold small text-secondary">Low Stock Alert Threshold *</label>
+                                    <input type="number" th:field="*{minStockThreshold}" id="minStockThreshold" class="form-control" min="1" required>
+                                </div>
+
+                                <!-- Measurement Unit -->
+                                <div class="col-12 col-md-4">
+                                    <label for="unit" class="form-label fw-semibold small text-secondary">Unit of Sale</label>
+                                    <select th:field="*{unit}" id="unit" class="form-select">
+                                        <option value="pcs">pcs (pieces)</option>
+                                        <option value="kg">kg (kilograms)</option>
+                                        <option value="pack">pack</option>
+                                        <option value="bottle">bottle</option>
+                                        <option value="loaf">loaf</option>
+                                        <option value="tub">tub</option>
+                                        <option value="box">box</option>
+                                        <option value="bag">bag</option>
+                                        <option value="jar">jar</option>
+                                    </select>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="col-12">
+                                    <label for="description" class="form-label fw-semibold small text-secondary">Product Description</label>
+                                    <textarea th:field="*{description}" id="description" class="form-control" rows="3" placeholder="Additional details or specifications..."></textarea>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <a th:href="@{/products}" class="btn btn-light px-4">Cancel</a>
+                                <button type="submit" class="btn btn-primary-gradient px-5 fw-bold">
+                                    <i class="bi bi-check-lg me-1"></i>Save Product
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+<script>
+    function generateSku() {
+        const randomCode = '8901' + Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('barcode').value = randomCode;
+    }
+
+    function calculateMargin() {
+        const cost = parseFloat(document.getElementById('costPrice').value) || 0;
+        const sell = parseFloat(document.getElementById('sellingPrice').value) || 0;
+        const diff = sell - cost;
+        const pct = cost > 0 ? ((diff / cost) * 100).toFixed(1) : 0;
+        const marginEl = document.getElementById('marginText');
+
+        if (diff >= 0) {
+            marginEl.className = 'fw-bold text-success';
+            marginEl.textContent = '+₹' + diff.toFixed(2) + ' (+' + pct + '%)';
+        } else {
+            marginEl.className = 'fw-bold text-danger';
+            marginEl.textContent = '-₹' + Math.abs(diff).toFixed(2) + ' (' + pct + '%)';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', calculateMargin);
+</script>
+
+</body>
+</html>
