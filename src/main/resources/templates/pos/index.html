@@ -145,6 +145,15 @@
                     <h2 class="fw-extrabold text-success mb-0" id="modal-payable-amount">₹0.00</h2>
                 </div>
 
+                <!-- Cashier Name (Required) -->
+                <div class="mb-3">
+                    <label for="modal-cashier-name" class="form-label fw-semibold small text-secondary">
+                        Cashier Name <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control" id="modal-cashier-name" 
+                           placeholder="Enter cashier name" required>
+                </div>
+
                 <div class="mb-3">
                     <label for="modal-payment-method" class="form-label fw-semibold small text-secondary">Payment Method</label>
                     <select class="form-select" id="modal-payment-method">
@@ -190,7 +199,7 @@
         </div>
     </div>
 </div>
-
+    
 <!-- Sale Success Modal -->
 <div class="modal fade" id="saleSuccessModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
