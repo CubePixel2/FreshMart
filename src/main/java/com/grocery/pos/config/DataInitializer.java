@@ -41,9 +41,9 @@ public class DataInitializer implements CommandLineRunner {
             return; // Data already seeded
         }
 
-        // 1. Seed Users (Kerala, India)
-        User admin = new User("admin", passwordEncoder.encode("admin123"), "Rahul Menon", "rahul.menon@freshmart.in", Role.ROLE_ADMIN);
-        User staff = new User("staff", passwordEncoder.encode("staff123"), "Ananya Nair", "ananya.nair@freshmart.in", Role.ROLE_STAFF);
+        // 1. Seed Users (Standard Administrator & Staff roles)
+        User admin = new User("admin", passwordEncoder.encode("admin123"), "Administrator", "admin@freshmart.in", Role.ROLE_ADMIN);
+        User staff = new User("staff", passwordEncoder.encode("staff123"), "Staff Cashier", "staff@freshmart.in", Role.ROLE_STAFF);
         userRepository.saveAll(Arrays.asList(admin, staff));
 
         // 2. Seed Categories (Kerala context)
@@ -136,6 +136,7 @@ public class DataInitializer implements CommandLineRunner {
         sale.setInvoiceNumber(invoiceNo);
         sale.setSaleDate(date);
         sale.setCashier(cashier);
+        sale.setCashierName(cashier != null && cashier.getRole() == Role.ROLE_ADMIN ? "Counter #1" : "Counter #2");
         sale.setCustomerName(customer);
         sale.setCustomerPhone(phone);
         sale.setPaymentMethod(method);

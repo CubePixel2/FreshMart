@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Categories')}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('categories')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Categories')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" data-aos="fade-down">
+                <div>
+                    <h3 class="fw-bold mb-1">Category Management</h3>
+                    <p class="text-muted mb-0">Organize grocery departments and product groupings</p>
+                </div>
+                <button type="button" class="btn btn-primary-gradient d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#categoryModal" onclick="resetCategoryForm()">
+                    <i class="bi bi-plus-lg"></i>
+                    <span>Add Category</span>
+                </button>
+            </div>
+
+            <!-- Categories Card Grid -->
+            <div class="row g-3 mb-4" data-aos="fade-up">
+                <div th:each="cat : ${categories}" class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                    <div class="card-modern p-4 h-100 position-relative">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white"
+                                 th:style="${'width: 50px; height: 50px; background-color: ' + cat.badgeColor + '; box-shadow: 0 4px 10px ' + cat.badgeColor + '55;'}">
+                                <i th:class="${'bi ' + cat.icon + ' fs-5'}"></i>
+                            </div>
+                            <span class="badge bg-light text-dark border rounded-pill px-3 py-1" th:text="${cat.productCount + ' Products'}">0 Products</span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1" th:text="${cat.name}">Category Name</h5>
+                        <p class="text-muted small mb-3 text-truncate" th:text="${cat.description != null ? cat.description : 'No description'}">Description</p>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                            <a th:href="@{'/products?categoryId=' + ${cat.id}}" class="btn btn-sm btn-link text-success p-0 text-decoration-none fw-semibold">
+                                View Products <i class="bi bi-arrow-right"></i>
+                            </a>
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-sm btn-light text-secondary rounded-circle p-1"
+                                        th:attr="data-id=${cat.id}, data-name=${cat.name}, data-desc=${cat.description}, data-icon=${cat.icon}, data-color=${cat.badgeColor}"
+                                        onclick="editCategory(this)" title="Edit">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <form th:action="@{'/categories/delete/' + ${cat.id}}" method="post" class="d-inline" onsubmit="return confirm('Are you sure? Categories with products cannot be deleted.');">
+                                    <button type="submit" class="btn btn-sm btn-light text-danger rounded-circle p-1" title="Delete">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <form th:action="@{/categories/save}" method="post">
+                <input type="hidden" name="id" id="modal-category-id">
+
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold text-dark" id="modalCategoryTitle">Add New Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="modal-category-name" class="form-label fw-semibold small text-secondary">Category Name *</label>
+                        <input type="text" name="name" id="modal-category-name" class="form-control" placeholder="e.g. Organic Produce" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modal-category-desc" class="form-label fw-semibold small text-secondary">Description</label>
+                        <textarea name="description" id="modal-category-desc" class="form-control" rows="2" placeholder="Brief description..."></textarea>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label for="modal-category-icon" class="form-label fw-semibold small text-secondary">Bootstrap Icon</label>
+                            <select name="icon" id="modal-category-icon" class="form-select">
+                                <option value="bi-basket">bi-basket (General)</option>
+                                <option value="bi-apple">bi-apple (Produce)</option>
+                                <option value="bi-egg-fried">bi-egg-fried (Dairy)</option>
+                                <option value="bi-cake">bi-cake (Bakery)</option>
+                                <option value="bi-cup-straw">bi-cup-straw (Drinks)</option>
+                                <option value="bi-box2-heart">bi-box2-heart (Snacks)</option>
+                                <option value="bi-inbox">bi-inbox (Pantry)</option>
+                                <option value="bi-stars">bi-stars (Cleaning)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="modal-category-color" class="form-label fw-semibold small text-secondary">Theme Color</label>
+                            <input type="color" name="badgeColor" id="modal-category-color" class="form-control form-control-color w-100" value="#10b981">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-gradient px-4">Save Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+<script>
+    function resetCategoryForm() {
+        document.getElementById('modalCategoryTitle').textContent = 'Add New Category';
+        document.getElementById('modal-category-id').value = '';
+        document.getElementById('modal-category-name').value = '';
+        document.getElementById('modal-category-desc').value = '';
+        document.getElementById('modal-category-color').value = '#10b981';
+    }
+
+    function editCategory(btn) {
+        document.getElementById('modalCategoryTitle').textContent = 'Edit Category';
+        document.getElementById('modal-category-id').value = btn.getAttribute('data-id');
+        document.getElementById('modal-category-name').value = btn.getAttribute('data-name');
+        document.getElementById('modal-category-desc').value = btn.getAttribute('data-desc') || '';
+        document.getElementById('modal-category-icon').value = btn.getAttribute('data-icon') || 'bi-basket';
+        document.getElementById('modal-category-color').value = btn.getAttribute('data-color') || '#10b981';
+
+        const modal = new bootstrap.Modal(document.getElementById('categoryModal'));
+        modal.show();
+    }
+</script>
+
+</body>
+</html>

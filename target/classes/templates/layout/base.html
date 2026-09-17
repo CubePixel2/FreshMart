@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- Fragment: Common Head -->
+<head th:fragment="head(pageTitle)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle + ' - FreshMart POS' : 'FreshMart - Modern Grocery POS'}">FreshMart POS</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- AOS (Animate On Scroll) -->
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- Backdrop overlay for mobile/tablet menu -->
+<div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+<!-- Fragment: Sidebar -->
+<aside id="sidebar" th:fragment="sidebar(activeNav)">
+    <div class="brand-header">
+        <a th:href="@{/dashboard}" class="brand-logo">
+            <i class="bi bi-cart4"></i>
+            <span>Fresh<span class="text-success">Mart</span></span>
+        </a>
+        <button type="button" class="btn btn-sm btn-outline-light border-0 text-secondary p-1 ms-auto sidebar-close-trigger" id="sidebar-collapse-btn" title="Minimise Sidebar">
+            <i class="bi bi-chevron-left fs-5"></i>
+        </button>
+    </div>
+
+    <ul class="nav-menu">
+        <li class="nav-heading">Main</li>
+        <li class="nav-item">
+            <a th:href="@{/dashboard}" class="nav-link" th:classappend="${activeNav == 'dashboard' ? 'active' : ''}" title="Dashboard">
+                <i class="bi bi-grid-1x2-fill"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a th:href="@{/pos}" class="nav-link" th:classappend="${activeNav == 'pos' ? 'active' : ''}" title="POS Terminal">
+                <i class="bi bi-cash-stack"></i>
+                <span>POS Terminal</span>
+                <span class="badge bg-success ms-auto rounded-pill px-2 py-1 small">Live</span>
+            </a>
+        </li>
+
+        <li class="nav-heading mt-3">Inventory</li>
+        <li class="nav-item">
+            <a th:href="@{/products}" class="nav-link" th:classappend="${activeNav == 'products' ? 'active' : ''}" title="Products">
+                <i class="bi bi-box-seam-fill"></i>
+                <span>Products</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a th:href="@{/products/low-stock}" class="nav-link" th:classappend="${activeNav == 'low-stock' ? 'active' : ''}" title="Low Stock Alerts">
+                <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                <span>Low Stock Alerts</span>
+            </a>
+        </li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/categories}" class="nav-link" th:classappend="${activeNav == 'categories' ? 'active' : ''}" title="Categories">
+                <i class="bi bi-tags-fill"></i>
+                <span>Categories</span>
+            </a>
+        </li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/suppliers}" class="nav-link" th:classappend="${activeNav == 'suppliers' ? 'active' : ''}" title="Suppliers">
+                <i class="bi bi-truck"></i>
+                <span>Suppliers</span>
+            </a>
+        </li>
+
+        <li class="nav-heading mt-3">Sales &amp; Reports</li>
+        <li class="nav-item">
+            <a th:href="@{/sales}" class="nav-link" th:classappend="${activeNav == 'sales' ? 'active' : ''}" title="Sales History">
+                <i class="bi bi-receipt"></i>
+                <span>Sales History</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <div class="d-flex align-items-center gap-2">
+            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 38px; height: 38px;">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <div class="overflow-hidden flex-grow-1 user-info-block">
+                <div class="text-white small fw-bold text-truncate" sec:authentication="name">User</div>
+                <div class="text-muted" style="font-size: 0.75rem;" sec:authorize="hasRole('ADMIN')">Administrator</div>
+                <div class="text-muted" style="font-size: 0.75rem;" sec:authorize="!hasRole('ADMIN')">Staff Cashier</div>
+            </div>
+            <form th:action="@{/logout}" method="post" class="m-0 flex-shrink-0">
+                <button type="submit" class="btn btn-sm btn-outline-danger p-1 rounded-circle" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</aside>
+
+<!-- Fragment: Top Navbar -->
+<header class="top-navbar" th:fragment="navbar(pageTitle)">
+    <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-light p-2 rounded-circle me-1" id="sidebar-toggle" type="button" title="Minimise / Toggle Menu">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <h5 class="mb-0 fw-bold text-dark d-none d-sm-block" th:text="${pageTitle}">Dashboard</h5>
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+        <!-- Quick POS launch button -->
+        <a th:href="@{/pos}" class="btn btn-sm btn-primary-gradient d-flex align-items-center gap-2">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span class="d-none d-md-inline">New Sale</span>
+        </a>
+
+        <!-- Low stock alert bell -->
+        <a th:href="@{/products/low-stock}" class="btn btn-light rounded-circle position-relative p-2" title="Stock Alerts">
+            <i class="bi bi-bell-fill text-secondary"></i>
+        </a>
+
+        <!-- User profile badge -->
+        <div class="dropdown">
+            <button class="btn btn-light rounded-pill px-3 py-1 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+                <span class="badge bg-success-subtle text-success rounded-pill fw-semibold" sec:authorize="hasRole('ADMIN')">ADMIN</span>
+                <span class="badge bg-info-subtle text-primary rounded-pill fw-semibold" sec:authorize="!hasRole('ADMIN')">STAFF</span>
+                <span class="fw-semibold text-dark small" sec:authentication="name">User</span>
+                <i class="bi bi-chevron-down text-muted small"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
+                <li><h6 class="dropdown-header">Active Session</h6></li>
+                <li><a class="dropdown-item" th:href="@{/pos}"><i class="bi bi-cart me-2"></i>POS Billing</a></li>
+                <li><a class="dropdown-item" th:href="@{/products}"><i class="bi bi-box me-2"></i>Inventory</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</header>
+
+<!-- Fragment: Alert Messages -->
+<div class="px-4 pt-3" th:fragment="alerts" th:if="${successMessage != null or errorMessage != null}">
+    <div class="alert alert-success alert-dismissible fade show alert-modern" th:if="${successMessage != null}">
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        <div class="flex-grow-1 fw-medium" th:text="${successMessage}">Operation completed!</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show alert-modern" th:if="${errorMessage != null}">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+        <div class="flex-grow-1 fw-medium" th:text="${errorMessage}">An error occurred!</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+
+<!-- Fragment: Footer -->
+<footer class="py-3 px-4 text-center text-muted small border-top bg-white no-print" th:fragment="footer">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>&copy; 2026 <strong>FreshMart Supermarket</strong> &bull; Kochi, Kerala, India &bull; GSTIN: 32AABCF9876K1Z9</div>
+        <div class="text-secondary">Grocery Store Inventory &amp; POS Billing &bull; Kerala Retail Edition</div>
+    </div>
+</footer>
+
+<!-- Fragment: Scripts & Toast Container -->
+<div th:fragment="scripts">
+    <div class="toast-container" id="toast-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script th:src="@{/js/app.js}"></script>
+</div>
+
+</body>
+</html>

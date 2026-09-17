@@ -121,7 +121,10 @@ public class Sale {
     }
 
     public String getCashierName() {
-        return cashierName;
+        if (cashierName != null && !cashierName.isBlank()) {
+            return cashierName;
+        }
+        return cashier != null ? cashier.getFullName() : "Cashier";
     }
 
     public void setCashierName(String cashierName) {

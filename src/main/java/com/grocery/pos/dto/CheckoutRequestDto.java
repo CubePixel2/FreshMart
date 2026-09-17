@@ -8,13 +8,13 @@ import java.util.List;
 public class CheckoutRequestDto {
 
     private List<CartItemDto> items = new ArrayList<>();
+    private String cashierName;
     private String customerName;
     private String customerPhone;
     private PaymentMethod paymentMethod = PaymentMethod.CASH;
     private BigDecimal discountAmount = BigDecimal.ZERO;
     private BigDecimal amountPaid = BigDecimal.ZERO;
     private String notes;
-    private String cashierName;
 
     public CheckoutRequestDto() {
     }
@@ -25,6 +25,14 @@ public class CheckoutRequestDto {
 
     public void setItems(List<CartItemDto> items) {
         this.items = items;
+    }
+
+    public String getCashierName() {
+        return cashierName;
+    }
+
+    public void setCashierName(String cashierName) {
+        this.cashierName = cashierName;
     }
 
     public String getCustomerName() {
@@ -73,13 +81,5 @@ public class CheckoutRequestDto {
 
     public void setNotes(String notes) {
         this.notes = notes;
-    }
-
-    public String getCashierName() {
-        return cashierName;
-    }
-
-    public void setCashierName(String cashierName) {
-        this.cashierName = cashierName;
     }
 }

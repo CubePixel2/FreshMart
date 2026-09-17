@@ -58,7 +58,7 @@
                     </div>
                     <div class="col-6 text-end">
                         <span class="text-muted small d-block">Billed By (Cashier)</span>
-                        <span class="fw-bold text-dark" th:text="${sale.cashier != null ? sale.cashier.fullName : 'Terminal #1'}">Cashier</span>
+                        <span class="fw-bold text-dark fs-6" th:text="${sale.cashierName}">Cashier</span>
 
                         <span class="text-muted small d-block mt-2">Customer Details</span>
                         <span class="fw-bold text-dark" th:text="${sale.customerName}">Walk-in Customer</span>

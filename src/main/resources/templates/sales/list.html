@@ -52,7 +52,7 @@
                                     <div class="text-muted small" th:text="${sale.customerPhone}">Phone</div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-light text-dark border" th:text="${sale.cashier != null ? sale.cashier.fullName : 'Staff'}">Cashier</span>
+                                    <span class="badge bg-light text-dark border" th:text="${sale.cashierName}">Cashier</span>
                                 </td>
                                 <td>
                                     <span class="badge" th:classappend="${sale.paymentMethod.name() == 'CASH' ? 'badge-soft-success' : (sale.paymentMethod.name() == 'CARD' ? 'badge-soft-primary' : 'badge-soft-warning')}">

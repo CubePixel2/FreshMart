@@ -63,47 +63,30 @@ public class SaleService {
         sale.setInvoiceNumber(generateInvoiceNumber());
         sale.setSaleDate(LocalDateTime.now());
         sale.setCashier(cashier);
-
-        sale.setCashierName(
-                (request.getCashierName() != null && !request.getCashierName().trim().isEmpty())
-                        ? request.getCashierName().trim()
-                        : (cashier != null ? cashier.getName() : "Unknown")
-        );
-
+        if (request.getCashierName() != null && !request.getCashierName().trim().isEmpty()) {
+            sale.setCashierName(request.getCashierName().trim());
+        } else if (cashier != null && cashier.getFullName() != null && !cashier.getFullName().isBlank()) {
+            sale.setCashierName(cashier.getFullName());
+        } else {
+            sale.setCashierName("Cashier");
+        }
         sale.setCustomerName((request.getCustomerName() != null && !request.getCustomerName().trim().isEmpty())
                 ? request.getCustomerName().trim() : "Walk-in Customer");
-
         sale.setCustomerPhone(request.getCustomerPhone());
-
-        sale.setPaymentMethod(
-                request.getPaymentMethod() != null
-                        ? request.getPaymentMethod()
-                        : PaymentMethod.CASH
-        );
-
+        sale.setPaymentMethod(request.getPaymentMethod() != null ? request.getPaymentMethod() : PaymentMethod.CASH);
         sale.setNotes(request.getNotes());
 
         BigDecimal subtotal = BigDecimal.ZERO;
 
         for (CartItemDto itemDto : request.getItems()) {
             Product product = productRepository.findById(itemDto.getProductId())
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "Product not found: ID " + itemDto.getProductId()
-                    ));
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found: ID " + itemDto.getProductId()));
 
             // Deduct stock in DB
             productService.deductStock(product.getId(), itemDto.getQuantity());
 
             BigDecimal itemPrice = product.getSellingPrice();
-
-            SaleItem saleItem = new SaleItem(
-                    sale,
-                    product,
-                    product.getName(),
-                    itemPrice,
-                    itemDto.getQuantity()
-            );
-
+            SaleItem saleItem = new SaleItem(sale, product, product.getName(), itemPrice, itemDto.getQuantity());
             subtotal = subtotal.add(saleItem.getSubtotal());
             sale.addItem(saleItem);
         }
@@ -112,39 +95,24 @@ public class SaleService {
 
         // Tax 5%
         BigDecimal taxRate = BigDecimal.valueOf(5.00);
-
-        BigDecimal taxAmount = subtotal
-                .multiply(taxRate)
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-
+        BigDecimal taxAmount = subtotal.multiply(taxRate).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         sale.setTaxRate(taxRate);
         sale.setTaxAmount(taxAmount);
 
         // Discount
-        BigDecimal discount = request.getDiscountAmount() != null
-                ? request.getDiscountAmount()
-                : BigDecimal.ZERO;
-
+        BigDecimal discount = request.getDiscountAmount() != null ? request.getDiscountAmount() : BigDecimal.ZERO;
         if (discount.compareTo(subtotal.add(taxAmount)) > 0) {
             discount = subtotal.add(taxAmount);
         }
-
         sale.setDiscountAmount(discount);
 
         // Grand Total = Subtotal + Tax - Discount
-        BigDecimal grandTotal = subtotal
-                .add(taxAmount)
-                .subtract(discount);
-
+        BigDecimal grandTotal = subtotal.add(taxAmount).subtract(discount);
         sale.setGrandTotal(grandTotal);
 
         // Payment & Change
-        BigDecimal paid = request.getAmountPaid() != null
-                ? request.getAmountPaid()
-                : grandTotal;
-
+        BigDecimal paid = request.getAmountPaid() != null ? request.getAmountPaid() : grandTotal;
         sale.setAmountPaid(paid);
-
         if (paid.compareTo(grandTotal) >= 0) {
             sale.setChangeReturned(paid.subtract(grandTotal));
         } else {
@@ -159,18 +127,11 @@ public class SaleService {
         long lowStockCount = productRepository.countLowStockProducts();
 
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-
         long todaySalesCount = saleRepository.countSalesSince(startOfDay);
         BigDecimal todayRevenue = saleRepository.sumRevenueSince(startOfDay);
         BigDecimal totalRevenue = saleRepository.sumTotalRevenue();
 
-        return new DashboardSummaryDto(
-                totalProducts,
-                lowStockCount,
-                todaySalesCount,
-                todayRevenue,
-                totalRevenue
-        );
+        return new DashboardSummaryDto(totalProducts, lowStockCount, todaySalesCount, todayRevenue, totalRevenue);
     }
 
     public ChartDataDto getChartData() {
@@ -178,44 +139,23 @@ public class SaleService {
 
         // 1. Last 7 days sales data
         LocalDate today = LocalDate.now();
-
         List<String> dates = new ArrayList<>();
         List<BigDecimal> salesTotals = new ArrayList<>();
 
         Map<LocalDate, BigDecimal> dailyTotals = new HashMap<>();
-
-        LocalDateTime sevenDaysAgo = today
-                .minusDays(6)
-                .atStartOfDay();
-
-        List<Sale> recentSales =
-                saleRepository.findBySaleDateAfter(sevenDaysAgo);
+        LocalDateTime sevenDaysAgo = today.minusDays(6).atStartOfDay();
+        List<Sale> recentSales = saleRepository.findBySaleDateAfter(sevenDaysAgo);
 
         for (Sale sale : recentSales) {
             LocalDate date = sale.getSaleDate().toLocalDate();
-
-            dailyTotals.put(
-                    date,
-                    dailyTotals
-                            .getOrDefault(date, BigDecimal.ZERO)
-                            .add(sale.getGrandTotal())
-            );
+            dailyTotals.put(date, dailyTotals.getOrDefault(date, BigDecimal.ZERO).add(sale.getGrandTotal()));
         }
 
-        DateTimeFormatter formatter =
-                DateTimeFormatter.ofPattern("MMM dd");
-
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd");
         for (int i = 6; i >= 0; i--) {
             LocalDate day = today.minusDays(i);
-
             dates.add(day.format(formatter));
-
-            salesTotals.add(
-                    dailyTotals.getOrDefault(
-                            day,
-                            BigDecimal.ZERO
-                    )
-            );
+            salesTotals.add(dailyTotals.getOrDefault(day, BigDecimal.ZERO));
         }
 
         chartData.setSalesDates(dates);
@@ -223,25 +163,14 @@ public class SaleService {
 
         // 2. Category distribution
         List<Category> categories = categoryRepository.findAll();
-
         List<String> catLabels = new ArrayList<>();
         List<Integer> catCounts = new ArrayList<>();
         List<String> catColors = new ArrayList<>();
 
         for (Category cat : categories) {
             catLabels.add(cat.getName());
-
-            catCounts.add(
-                    cat.getProducts() != null
-                            ? cat.getProducts().size()
-                            : 0
-            );
-
-            catColors.add(
-                    cat.getBadgeColor() != null
-                            ? cat.getBadgeColor()
-                            : "#10b981"
-            );
+            catCounts.add(cat.getProducts() != null ? cat.getProducts().size() : 0);
+            catColors.add(cat.getBadgeColor() != null ? cat.getBadgeColor() : "#10b981");
         }
 
         chartData.setCategoryLabels(catLabels);
@@ -252,17 +181,9 @@ public class SaleService {
     }
 
     private synchronized String generateInvoiceNumber() {
-        String dateStr = LocalDate.now()
-                .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
+        String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         long count = saleRepository.count();
-
         int seq = (int) ((count % 10000) + 1);
-
-        return String.format(
-                "INV-%s-%04d",
-                dateStr,
-                seq
-        );
+        return String.format("INV-%s-%04d", dateStr, seq);
     }
 }

@@ -75,6 +75,7 @@ public class PosController {
             Map<String, Object> responseData = new HashMap<>();
             responseData.put("saleId", savedSale.getId());
             responseData.put("invoiceNumber", savedSale.getInvoiceNumber());
+            responseData.put("cashierName", savedSale.getCashierName());
             responseData.put("grandTotal", savedSale.getGrandTotal());
             responseData.put("changeReturned", savedSale.getChangeReturned());
             responseData.put("invoiceUrl", "/sales/" + savedSale.getId() + "/invoice");

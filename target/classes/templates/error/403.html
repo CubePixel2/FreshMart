@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Access Denied')}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('dashboard')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Access Denied')}"></header>
+
+        <main class="page-container">
+            <div class="row justify-content-center py-5">
+                <div class="col-12 col-md-6 text-center" data-aos="zoom-in">
+                    <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-inline-flex align-items-center justify-content-center p-4 mb-3" style="width: 90px; height: 90px;">
+                        <i class="bi bi-shield-lock-fill fs-1"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark">Access Denied (403)</h2>
+                    <p class="text-muted mb-4">
+                        You do not have administrative permissions to view or edit this resource.
+                        Please contact your store administrator.
+                    </p>
+                    <a th:href="@{/dashboard}" class="btn btn-primary-gradient px-4 py-2 fw-semibold">
+                        <i class="bi bi-arrow-left me-2"></i>Return to Dashboard
+                    </a>
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+
+</body>
+</html>

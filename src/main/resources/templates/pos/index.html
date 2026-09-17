@@ -145,15 +145,6 @@
                     <h2 class="fw-extrabold text-success mb-0" id="modal-payable-amount">₹0.00</h2>
                 </div>
 
-                <!-- Cashier Name (Required) -->
-                <div class="mb-3">
-                    <label for="modal-cashier-name" class="form-label fw-semibold small text-secondary">
-                        Cashier Name <span class="text-danger">*</span>
-                    </label>
-                    <input type="text" class="form-control" id="modal-cashier-name" 
-                           placeholder="Enter cashier name" required>
-                </div>
-
                 <div class="mb-3">
                     <label for="modal-payment-method" class="form-label fw-semibold small text-secondary">Payment Method</label>
                     <select class="form-select" id="modal-payment-method">
@@ -172,6 +163,15 @@
                         <label class="form-label fw-semibold small text-secondary">Change Due</label>
                         <div class="form-control bg-light fw-bold text-primary" id="modal-change-amount">₹0.00</div>
                     </div>
+                </div>
+
+                <!-- Cashier Name (Required) -->
+                <div class="mb-3">
+                    <label for="modal-cashier-name" class="form-label fw-semibold small text-secondary">
+                        <i class="bi bi-person-badge text-primary me-1"></i>Cashier Name <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control fw-medium" id="modal-cashier-name" placeholder="Enter Cashier Name (e.g. Arun, Counter 1)" required>
+                    <div class="invalid-feedback">Please enter the Cashier Name before completing the bill!</div>
                 </div>
 
                 <div class="row g-2 mb-3">
@@ -199,7 +199,7 @@
         </div>
     </div>
 </div>
-    
+
 <!-- Sale Success Modal -->
 <div class="modal fade" id="saleSuccessModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -214,6 +214,10 @@
                 <div class="d-flex justify-content-between mb-1">
                     <span class="text-muted small">Invoice Number:</span>
                     <span class="fw-bold text-dark" id="success-invoice-no">INV-2026</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted small">Cashier:</span>
+                    <span class="fw-bold text-dark" id="success-cashier">Cashier</span>
                 </div>
                 <div class="d-flex justify-content-between mb-1">
                     <span class="text-muted small">Total Paid:</span>
