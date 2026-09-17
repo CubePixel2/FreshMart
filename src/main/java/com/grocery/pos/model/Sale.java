@@ -26,6 +26,9 @@ public class Sale {
     private User cashier;
 
     @Column(length = 100)
+    private String cashierName;
+
+    @Column(length = 100)
     private String customerName = "Walk-in Customer";
 
     @Column(length = 25)
@@ -115,6 +118,14 @@ public class Sale {
 
     public void setCashier(User cashier) {
         this.cashier = cashier;
+    }
+
+    public String getCashierName() {
+        return cashierName;
+    }
+
+    public void setCashierName(String cashierName) {
+        this.cashierName = cashierName;
     }
 
     public String getCustomerName() {
