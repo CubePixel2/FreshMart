@@ -14,6 +14,7 @@ public class CheckoutRequestDto {
     private BigDecimal discountAmount = BigDecimal.ZERO;
     private BigDecimal amountPaid = BigDecimal.ZERO;
     private String notes;
+    private String cashierName;
 
     public CheckoutRequestDto() {
     }
@@ -72,5 +73,13 @@ public class CheckoutRequestDto {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getCashierName() {
+        return cashierName;
+    }
+
+    public void setCashierName(String cashierName) {
+        this.cashierName = cashierName;
     }
 }
