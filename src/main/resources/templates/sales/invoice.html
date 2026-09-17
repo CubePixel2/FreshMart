@@ -53,8 +53,11 @@
                         <span class="text-muted small d-block">Tax Invoice No.</span>
                         <span class="fw-bold text-dark fs-6" th:text="${sale.invoiceNumber}">INV-20260915-0001</span>
 
-                        <span class="text-muted small d-block mt-2">Date &amp; Time</span>
-                        <span class="fw-medium text-dark" th:text="${#temporals.format(sale.saleDate, 'dd MMM yyyy, hh:mm a')}">15 Sep 2026, 10:30 AM</span>
+                        <span class="text-muted small d-block mt-2">Sale Date &amp; Time</span>
+                        <span class="fw-medium text-dark" th:text="${#temporals.format(sale.saleDate, 'dd MMM yyyy, hh:mm:ss a')}">15 Sep 2026, 10:30:00 AM</span>
+
+                        <span class="text-muted small d-block mt-2">Print Date &amp; Time</span>
+                        <span class="fw-semibold text-primary" id="meta-print-timestamp">--</span>
                     </div>
                     <div class="col-6 text-end">
                         <span class="text-muted small d-block">Billed By (Cashier)</span>
@@ -63,6 +66,9 @@
                         <span class="text-muted small d-block mt-2">Customer Details</span>
                         <span class="fw-bold text-dark" th:text="${sale.customerName}">Walk-in Customer</span>
                         <div class="text-muted small" th:if="${sale.customerPhone}" th:text="${sale.customerPhone}">Phone</div>
+
+                        <span class="text-muted small d-block mt-2">Terminal / POS</span>
+                        <span class="fw-medium text-dark">Kochi Counter #1</span>
                     </div>
                 </div>
 
@@ -135,7 +141,11 @@
                     <p class="mb-1 fw-bold text-dark">Thank you for shopping at FreshMart Supermarket, Kochi!</p>
                     <p class="mb-1 text-success fw-semibold" style="font-size: 0.85rem;">നന്ദി, വീണ്ടും സന്ദർശിക്കുക (Visit Again!)</p>
                     <p class="mb-2 text-muted" style="font-size: 0.75rem;">Prices inclusive of all taxes. Kerala GST State Code: 32.</p>
-                    <div class="text-secondary font-monospace" style="letter-spacing: 0.25em;">* * [[${sale.invoiceNumber}]] * *</div>
+                    <div class="d-flex justify-content-between align-items-center text-muted px-3 py-1 my-2 border rounded bg-light" style="font-size: 0.75rem;">
+                        <span><i class="bi bi-printer me-1"></i>Printed: <strong id="footer-print-timestamp" class="text-dark">--</strong></span>
+                        <span class="font-monospace">Ref: [[${sale.invoiceNumber}]]</span>
+                    </div>
+                    <div class="text-secondary font-monospace mt-2" style="letter-spacing: 0.25em;">* * [[${sale.invoiceNumber}]] * *</div>
                 </div>
             </div>
         </main>
@@ -145,9 +155,38 @@
 </div>
 
 <div th:replace="~{layout/base :: scripts}"></div>
+<script>
+    function updateRealTimePrintTimestamps() {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+        const timeStr = now.toLocaleTimeString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+        const formatted = dateStr + ', ' + timeStr;
+
+        const metaEl = document.getElementById('meta-print-timestamp');
+        if (metaEl) metaEl.textContent = formatted;
+
+        const footerEl = document.getElementById('footer-print-timestamp');
+        if (footerEl) footerEl.textContent = formatted;
+    }
+
+    // Initialize real-time print clock immediately
+    updateRealTimePrintTimestamps();
+    setInterval(updateRealTimePrintTimestamps, 1000);
+    window.addEventListener('beforeprint', updateRealTimePrintTimestamps);
+</script>
 <script th:if="${autoPrint}">
     window.addEventListener('load', function () {
         setTimeout(function () {
+            updateRealTimePrintTimestamps();
             window.print();
         }, 600);
     });
