@@ -290,6 +290,22 @@ const POS = (function () {
   function processCheckoutSubmission() {
     if (cart.length === 0) return;
 
+    // ===== Cashier Name Validation =====
+    const cashierNameInput = document.getElementById('modal-cashier-name');
+    const cashierName = cashierNameInput ? cashierNameInput.value.trim() : '';
+
+    if (!cashierName) {
+        showToast('Please enter Cashier Name before completing the bill', 'danger');
+        if (cashierNameInput) {
+            cashierNameInput.focus();
+            cashierNameInput.classList.add('is-invalid');
+        }
+        return;
+    } else if (cashierNameInput) {
+        cashierNameInput.classList.remove('is-invalid');
+    }
+    // ===================================
+
     const totals = calculateTotals();
     const customerName = document.getElementById('modal-customer-name')?.value || 'Walk-in Customer';
     const customerPhone = document.getElementById('modal-customer-phone')?.value || '';
@@ -310,7 +326,8 @@ const POS = (function () {
       paymentMethod: paymentMethod,
       discountAmount: totals.discount,
       amountPaid: tendered,
-      notes: notes
+      notes: notes,
+      cashierName: cashierName          // ← New field
     };
 
     const confirmBtn = document.getElementById('pos-confirm-pay-btn');
