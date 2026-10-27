@@ -38,6 +38,21 @@ public class Sale {
     @Column(nullable = false, length = 20)
     private PaymentMethod paymentMethod = PaymentMethod.CASH;
 
+    @Column(length = 50)
+    private String paymentGateway = "CASH";
+
+    @Column(length = 100)
+    private String transactionId;
+
+    @Column(length = 100)
+    private String paymentReference;
+
+    @Column(length = 20)
+    private String paymentStatus = "SUCCESS";
+
+    @Column(length = 100)
+    private String orderId;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal = BigDecimal.ZERO;
 
@@ -225,6 +240,58 @@ public class Sale {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getPaymentGateway() {
+        if (paymentGateway != null && !paymentGateway.isBlank()) {
+            return paymentGateway;
+        }
+        return paymentMethod != null ? paymentMethod.name() : "CASH";
+    }
+
+    public void setPaymentGateway(String paymentGateway) {
+        this.paymentGateway = paymentGateway;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+        if (this.paymentReference == null) {
+            this.paymentReference = transactionId;
+        }
+    }
+
+    public String getPaymentReference() {
+        if (paymentReference != null && !paymentReference.isBlank()) {
+            return paymentReference;
+        }
+        return transactionId;
+    }
+
+    public void setPaymentReference(String paymentReference) {
+        this.paymentReference = paymentReference;
+        if (this.transactionId == null) {
+            this.transactionId = paymentReference;
+        }
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus != null ? paymentStatus : "SUCCESS";
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 
     public BigDecimal getCgstAmount() {

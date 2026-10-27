@@ -26,15 +26,18 @@ public class SaleService {
     private final ProductRepository productRepository;
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
+    private final RealtimeSyncService realtimeSyncService;
 
     public SaleService(SaleRepository saleRepository,
                        ProductRepository productRepository,
                        ProductService productService,
-                       CategoryRepository categoryRepository) {
+                       CategoryRepository categoryRepository,
+                       RealtimeSyncService realtimeSyncService) {
         this.saleRepository = saleRepository;
         this.productRepository = productRepository;
         this.productService = productService;
         this.categoryRepository = categoryRepository;
+        this.realtimeSyncService = realtimeSyncService;
     }
 
     public List<Sale> findAll() {
@@ -74,6 +77,31 @@ public class SaleService {
                 ? request.getCustomerName().trim() : "Walk-in Customer");
         sale.setCustomerPhone(request.getCustomerPhone());
         sale.setPaymentMethod(request.getPaymentMethod() != null ? request.getPaymentMethod() : PaymentMethod.CASH);
+        
+        // Payment Gateway, Transaction ID, Status & Order tracking
+        String gateway = request.getPaymentGateway();
+        if (gateway == null || gateway.isBlank()) {
+            gateway = sale.getPaymentMethod() != null ? sale.getPaymentMethod().name() : "CASH";
+        }
+        sale.setPaymentGateway(gateway);
+
+        String txnId = request.getTransactionId();
+        if (txnId == null || txnId.isBlank()) {
+            txnId = request.getPaymentReference();
+        }
+        if (txnId == null || txnId.isBlank()) {
+            txnId = generateTransactionId(gateway, sale.getInvoiceNumber());
+        }
+        sale.setTransactionId(txnId);
+        sale.setPaymentReference(txnId);
+
+        String pStatus = request.getPaymentStatus();
+        if (pStatus == null || pStatus.isBlank()) {
+            pStatus = "SUCCESS";
+        }
+        sale.setPaymentStatus(pStatus.toUpperCase());
+        sale.setOrderId(request.getOrderId());
+
         sale.setNotes(request.getNotes());
 
         BigDecimal subtotal = BigDecimal.ZERO;
@@ -119,7 +147,9 @@ public class SaleService {
             sale.setChangeReturned(BigDecimal.ZERO);
         }
 
-        return saleRepository.save(sale);
+        Sale saved = saleRepository.save(sale);
+        realtimeSyncService.notifySale(saved);
+        return saved;
     }
 
     public DashboardSummaryDto getDashboardSummary() {
@@ -185,5 +215,23 @@ public class SaleService {
         long count = saleRepository.count();
         int seq = (int) ((count % 10000) + 1);
         return String.format("INV-%s-%04d", dateStr, seq);
+    }
+
+    private String generateTransactionId(String gateway, String invoiceNumber) {
+        String suffix = invoiceNumber.replace("INV-", "").replace("-", "");
+        long rand = (long) (Math.random() * 900000L) + 100000L;
+        if ("ONLINE".equalsIgnoreCase(gateway)) {
+            return "ONLINE-MOCK-" + suffix + rand;
+        } else if ("RAZORPAY".equalsIgnoreCase(gateway)) {
+            return "pay_" + suffix + rand;
+        } else if ("STRIPE".equalsIgnoreCase(gateway)) {
+            return "ch_" + suffix + rand;
+        } else if ("UPI_QR".equalsIgnoreCase(gateway) || "UPI".equalsIgnoreCase(gateway)) {
+            return "UPI-UTR-" + suffix + rand;
+        } else if ("CARD_POS".equalsIgnoreCase(gateway) || "CARD".equalsIgnoreCase(gateway)) {
+            return "POS-AUTH-" + rand;
+        } else {
+            return "CASH-" + suffix;
+        }
     }
 }

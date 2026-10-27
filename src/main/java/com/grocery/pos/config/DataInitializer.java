@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -19,6 +20,9 @@ public class DataInitializer implements CommandLineRunner {
     private final SupplierRepository supplierRepository;
     private final ProductRepository productRepository;
     private final SaleRepository saleRepository;
+    private final PurchaseOrderRepository purchaseOrderRepository;
+    private final PurchaseInvoiceRepository purchaseInvoiceRepository;
+    private final SaleReturnRepository saleReturnRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(UserRepository userRepository,
@@ -26,12 +30,18 @@ public class DataInitializer implements CommandLineRunner {
                            SupplierRepository supplierRepository,
                            ProductRepository productRepository,
                            SaleRepository saleRepository,
+                           PurchaseOrderRepository purchaseOrderRepository,
+                           PurchaseInvoiceRepository purchaseInvoiceRepository,
+                           SaleReturnRepository saleReturnRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.supplierRepository = supplierRepository;
         this.productRepository = productRepository;
         this.saleRepository = saleRepository;
+        this.purchaseOrderRepository = purchaseOrderRepository;
+        this.purchaseInvoiceRepository = purchaseInvoiceRepository;
+        this.saleReturnRepository = saleReturnRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -88,7 +98,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // 5. Seed Past Sales / Invoices across past 6 days & today with Indian names & UPI payments
         LocalDateTime now = LocalDateTime.now();
-        createSampleSale("INV-" + now.minusDays(5).format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-0001",
+        Sale firstSale = createSampleSale("INV-" + now.minusDays(5).format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-0001",
                 now.minusDays(5).withHour(10).withMinute(30), admin, "Suresh Kumar", "+91 98470 11223", PaymentMethod.UPI,
                 Arrays.asList(new ItemSeed(products.get(0), 2), new ItemSeed(products.get(2), 3), new ItemSeed(products.get(5), 1)),
                 BigDecimal.ZERO);
@@ -122,6 +132,55 @@ public class DataInitializer implements CommandLineRunner {
                 now.minusHours(1).withMinute(40), staff, "Vishnu Nambiar", "+91 94465 77889", PaymentMethod.CASH,
                 Arrays.asList(new ItemSeed(products.get(2), 4), new ItemSeed(products.get(9), 2), new ItemSeed(products.get(14), 1)),
                 BigDecimal.ZERO);
+
+        // 6. Seed Sample Purchase Order (PO)
+        PurchaseOrder po = new PurchaseOrder();
+        po.setPoNumber("PO-" + now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-0001");
+        po.setSupplier(supMilma);
+        po.setOrderDate(LocalDate.now().minusDays(3));
+        po.setExpectedDate(LocalDate.now().plusDays(2));
+        po.setStatus(PurchaseOrderStatus.ORDERED);
+        po.setNotes("Standing weekly procurement for standardized milk and farm eggs");
+        po.setCreatedBy("admin");
+
+        PurchaseOrderItem poItem1 = new PurchaseOrderItem(products.get(2), 50, new BigDecimal("26.00"));
+        PurchaseOrderItem poItem2 = new PurchaseOrderItem(products.get(3), 30, new BigDecimal("42.00"));
+        po.addItem(poItem1);
+        po.addItem(poItem2);
+        purchaseOrderRepository.save(po);
+
+        // 7. Seed Sample Purchase Invoice (Posted to inventory)
+        PurchaseInvoice pi = new PurchaseInvoice();
+        pi.setInvoiceNumber("PINV-" + now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-0001");
+        pi.setSupplier(supKera);
+        pi.setInvoiceDate(LocalDate.now().minusDays(4));
+        pi.setPaymentStatus(PurchasePaymentStatus.PAID);
+        pi.setPosted(true);
+        pi.setPostedAt(now.minusDays(4));
+        pi.setNotes("Inward receipt for coconut oil and banana chips batch");
+        pi.setCreatedBy("admin");
+
+        PurchaseInvoiceItem piItem1 = new PurchaseInvoiceItem(products.get(5), 20, new BigDecimal("180.00"), new BigDecimal("180.00"));
+        PurchaseInvoiceItem piItem2 = new PurchaseInvoiceItem(products.get(9), 25, new BigDecimal("85.00"), new BigDecimal("106.25"));
+        pi.addItem(piItem1);
+        pi.addItem(piItem2);
+        pi.recalculateTotals();
+        purchaseInvoiceRepository.save(pi);
+
+        // 8. Seed Sample Sale Return
+        if (firstSale != null) {
+            SaleReturn sr = new SaleReturn();
+            sr.setReturnNumber("SR-" + now.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-0001");
+            sr.setOriginalSale(firstSale);
+            sr.setReturnDate(now.minusDays(2));
+            sr.setReason("Customer over-purchased ripe bananas");
+            sr.setProcessedBy("admin");
+
+            SaleReturnItem sri = new SaleReturnItem(products.get(0), 1, new BigDecimal("65.00"));
+            sr.addItem(sri);
+            sr.recalculateRefundTotal();
+            saleReturnRepository.save(sr);
+        }
     }
 
     private static class ItemSeed {
@@ -130,7 +189,7 @@ public class DataInitializer implements CommandLineRunner {
         ItemSeed(Product p, int q) { this.product = p; this.qty = q; }
     }
 
-    private void createSampleSale(String invoiceNo, LocalDateTime date, User cashier, String customer, String phone,
+    private Sale createSampleSale(String invoiceNo, LocalDateTime date, User cashier, String customer, String phone,
                                   PaymentMethod method, List<ItemSeed> items, BigDecimal discount) {
         Sale sale = new Sale();
         sale.setInvoiceNumber(invoiceNo);
@@ -140,6 +199,19 @@ public class DataInitializer implements CommandLineRunner {
         sale.setCustomerName(customer);
         sale.setCustomerPhone(phone);
         sale.setPaymentMethod(method);
+        sale.setPaymentGateway(method != null ? method.name() : "CASH");
+        sale.setPaymentStatus("PAID");
+        if (method == PaymentMethod.UPI || method == PaymentMethod.UPI_QR) {
+            sale.setTransactionId("UPI-UTR-" + invoiceNo.replace("INV-", "").replace("-", "") + "98");
+        } else if (method == PaymentMethod.RAZORPAY) {
+            sale.setTransactionId("pay_rzp" + invoiceNo.replace("INV-", "").replace("-", "") + "84");
+        } else if (method == PaymentMethod.STRIPE) {
+            sale.setTransactionId("ch_str" + invoiceNo.replace("INV-", "").replace("-", "") + "52");
+        } else if (method == PaymentMethod.CARD || method == PaymentMethod.CARD_POS) {
+            sale.setTransactionId("POS-AUTH-449812");
+        } else {
+            sale.setTransactionId("CASH-" + invoiceNo.replace("INV-", ""));
+        }
 
         BigDecimal subtotal = BigDecimal.ZERO;
         for (ItemSeed itemSeed : items) {
@@ -159,6 +231,6 @@ public class DataInitializer implements CommandLineRunner {
         sale.setAmountPaid(grandTotal);
         sale.setChangeReturned(BigDecimal.ZERO);
 
-        saleRepository.save(sale);
+        return saleRepository.save(sale);
     }
 }

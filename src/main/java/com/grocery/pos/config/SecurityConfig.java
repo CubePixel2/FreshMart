@@ -46,9 +46,10 @@ public class SecurityConfig {
         http
             .authenticationProvider(authenticationProvider())
             .csrf(csrf -> csrf
-                // Disable CSRF for POS API and H2 console
+                // Disable CSRF for POS API, Payment Gateway API and H2 console
                 .ignoringRequestMatchers(
                     new AntPathRequestMatcher("/pos/api/**"),
+                    new AntPathRequestMatcher("/api/payment/**"),
                     new AntPathRequestMatcher("/h2-console/**")
                 )
             )
@@ -72,7 +73,11 @@ public class SecurityConfig {
                     "/products/new",
                     "/products/save",
                     "/products/delete/**",
-                    "/products/edit/**"
+                    "/products/edit/**",
+                    "/settings/**",
+                    "/reports/**",
+                    "/returns/products/**",
+                    "/purchases/invoices/*/post"
                 ).hasAuthority("ROLE_ADMIN")
                 // General authenticated endpoints (Staff and Admin)
                 .requestMatchers(
@@ -82,6 +87,8 @@ public class SecurityConfig {
                     "/products",
                     "/products/low-stock",
                     "/products/restock/**",
+                    "/purchases/**",
+                    "/returns/sales/**",
                     "/sales/**",
                     "/api/**"
                 ).hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")

@@ -12,6 +12,11 @@ public class CheckoutRequestDto {
     private String customerName;
     private String customerPhone;
     private PaymentMethod paymentMethod = PaymentMethod.CASH;
+    private String paymentGateway = "CASH";
+    private String transactionId;
+    private String paymentReference;
+    private String paymentStatus = "SUCCESS";
+    private String orderId;
     private BigDecimal discountAmount = BigDecimal.ZERO;
     private BigDecimal amountPaid = BigDecimal.ZERO;
     private String notes;
@@ -57,6 +62,55 @@ public class CheckoutRequestDto {
 
     public void setPaymentMethod(PaymentMethod paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public String getPaymentGateway() {
+        return paymentGateway;
+    }
+
+    public void setPaymentGateway(String paymentGateway) {
+        this.paymentGateway = paymentGateway;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+        if (this.paymentReference == null) {
+            this.paymentReference = transactionId;
+        }
+    }
+
+    public String getPaymentReference() {
+        if (paymentReference != null && !paymentReference.isBlank()) {
+            return paymentReference;
+        }
+        return transactionId;
+    }
+
+    public void setPaymentReference(String paymentReference) {
+        this.paymentReference = paymentReference;
+        if (this.transactionId == null) {
+            this.transactionId = paymentReference;
+        }
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 
     public BigDecimal getDiscountAmount() {

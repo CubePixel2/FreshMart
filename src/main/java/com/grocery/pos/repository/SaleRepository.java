@@ -31,5 +31,17 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     @Query("SELECT COALESCE(SUM(s.grandTotal), 0) FROM Sale s")
     BigDecimal sumTotalRevenue();
 
+    @Query("SELECT COALESCE(SUM(s.grandTotal), 0) FROM Sale s WHERE s.saleDate BETWEEN :start AND :end")
+    BigDecimal sumGrandTotalBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT COALESCE(SUM(s.subtotal), 0) FROM Sale s WHERE s.saleDate BETWEEN :start AND :end")
+    BigDecimal sumSubtotalBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT COALESCE(SUM(s.taxAmount), 0) FROM Sale s WHERE s.saleDate BETWEEN :start AND :end")
+    BigDecimal sumTaxAmountBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT COALESCE(SUM(s.discountAmount), 0) FROM Sale s WHERE s.saleDate BETWEEN :start AND :end")
+    BigDecimal sumDiscountAmountBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
     List<Sale> findBySaleDateAfter(LocalDateTime since);
 }

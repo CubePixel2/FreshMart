@@ -29,4 +29,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p WHERE (:categoryId IS NULL OR p.category.id = :categoryId) AND (:query IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(p.barcode) LIKE LOWER(CONCAT('%', :query, '%'))) ORDER BY p.name ASC")
     List<Product> filterProducts(@Param("categoryId") Long categoryId, @Param("query") String query);
+
+    @Query("SELECT COALESCE(SUM(p.stockQuantity * p.costPrice), 0) FROM Product p")
+    java.math.BigDecimal calculateTotalInventoryValue();
 }

@@ -78,6 +78,10 @@ public class PosController {
             responseData.put("cashierName", savedSale.getCashierName());
             responseData.put("grandTotal", savedSale.getGrandTotal());
             responseData.put("changeReturned", savedSale.getChangeReturned());
+            responseData.put("paymentGateway", savedSale.getPaymentGateway());
+            responseData.put("paymentMethod", savedSale.getPaymentMethod().name());
+            responseData.put("transactionId", savedSale.getTransactionId());
+            responseData.put("paymentStatus", savedSale.getPaymentStatus());
             responseData.put("invoiceUrl", "/sales/" + savedSale.getId() + "/invoice");
 
             return ResponseEntity.ok(ApiResponseDto.ok("Sale completed successfully!", responseData));
