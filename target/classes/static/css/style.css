@@ -139,11 +139,13 @@ body {
   white-space: nowrap;
 }
 
-#sidebar .nav-link i {
+#sidebar .nav-link i,
+#sidebar .nav-link svg {
   font-size: 1.2rem;
   min-width: 24px;
   text-align: center;
   transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
 #sidebar .nav-link:hover {
@@ -261,7 +263,7 @@ body {
 /* Top Navbar */
 .top-navbar {
   height: 70px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--card-border);
@@ -272,6 +274,70 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
+}
+
+.top-navbar #sidebar-toggle {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--card-border);
+  background: #fff;
+  color: var(--text-main);
+  transition: all 0.2s ease;
+}
+
+.top-navbar #sidebar-toggle:hover {
+  background: #f1f5f9;
+  color: var(--primary);
+}
+
+.top-navbar .top-nav-btn {
+  height: 38px;
+  padding: 0 1.15rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.top-navbar .btn-stock-alert {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--card-border);
+  background: #fff;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.top-navbar .btn-stock-alert:hover {
+  background: #f1f5f9;
+  color: var(--primary);
+}
+
+.top-navbar .user-profile-btn {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.85rem;
+  border: 1px solid var(--card-border);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
+}
+
+.top-navbar .user-profile-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 /* Content Container */
@@ -441,18 +507,65 @@ body {
   padding: 0.35rem 0.75rem;
 }
 
+/* Custom Balance Scale Icon for Bootstrap Icons */
+.bi-scale {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bi-scale::before {
+  content: "";
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: -0.15em;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath d='m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath d='M7 21h10'/%3E%3Cpath d='M12 3v18'/%3E%3Cpath d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath d='m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z'/%3E%3Cpath d='M7 21h10'/%3E%3Cpath d='M12 3v18'/%3E%3Cpath d='M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
 /* -------------------------------------------------------------
    POS Billing Interface Styling
    ------------------------------------------------------------- */
-.pos-container {
-  height: calc(100vh - 110px);
+body.pos-terminal-body {
+  overflow: hidden;
+}
+
+@media (max-width: 991.98px) {
+  body.pos-terminal-body {
+    overflow-y: auto !important;
+  }
+}
+
+.pos-page-container {
+  padding: 0.85rem 1.25rem 0.5rem;
   display: flex;
-  gap: 1.5rem;
+  flex-direction: column;
+  height: calc(100vh - 70px);
+  overflow: hidden;
+}
+
+@media (max-width: 991.98px) {
+  .pos-page-container {
+    height: auto;
+    overflow: visible;
+    padding: 1rem 0.75rem;
+  }
+}
+
+.pos-container {
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 1.25rem;
   overflow: hidden;
 }
 
 .pos-products-panel {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -462,8 +575,10 @@ body {
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.85rem;
   scrollbar-width: thin;
 }
 
@@ -487,9 +602,10 @@ body {
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  flex-shrink: 0;
 }
 
 .pos-category-btn:hover {
@@ -507,31 +623,36 @@ body {
 
 .pos-product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  grid-auto-rows: 195px;
+  gap: 0.85rem;
   overflow-y: auto;
   padding-right: 0.35rem;
-  padding-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  flex: 1;
+  min-height: 0;
 }
 
 .pos-product-card {
   background: #fff;
   border: 1px solid var(--card-border);
   border-radius: var(--radius-md);
-  padding: 1rem;
+  padding: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, border-color 0.2s ease;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  height: 100%;
   position: relative;
   user-select: none;
+  overflow: hidden;
 }
 
 .pos-product-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   border-color: var(--primary);
-  box-shadow: var(--shadow-card-hover);
+  box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.15), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
 }
 
 .pos-product-card.out-of-stock {
@@ -540,14 +661,63 @@ body {
   pointer-events: none;
 }
 
+.pos-card-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.pos-card-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.35;
+  height: 2.7em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.pos-card-sku {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+.pos-card-bottom {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
 .pos-product-card .item-price {
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #059669;
+  letter-spacing: -0.01em;
+}
+
+.pos-add-btn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  transition: all 0.15s ease;
+}
+
+.pos-product-card:hover .pos-add-btn {
+  background: var(--primary);
+  color: #fff !important;
+  border-color: var(--primary);
 }
 
 .pos-cart-panel {
-  width: 400px;
+  width: 390px;
+  flex-shrink: 0;
   background: #fff;
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);
@@ -555,6 +725,7 @@ body {
   flex-direction: column;
   box-shadow: var(--shadow-md);
   overflow: hidden;
+  height: 100%;
 }
 
 .pos-cart-header {
@@ -730,26 +901,42 @@ body {
   animation: slideInRight 0.3s ease;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1200px) {
+/* -------------------------------------------------------------
+   Comprehensive Responsive System & Breakpoint Rules
+   - Desktop: >= 992px (Bootstrap lg/xl/xxl)
+   - Tablet / Medium Screen: 768px - 991.98px (Bootstrap md)
+   - Mobile: < 768px (Bootstrap sm/xs)
+   - Small Mobile: < 576px (Bootstrap xs)
+   ------------------------------------------------------------- */
+
+/* Tablet & Mobile Breakpoint (< 992px) */
+@media (max-width: 991.98px) {
   #sidebar {
+    width: 280px;
+    max-width: 85vw;
     transform: translateX(-100%);
     box-shadow: 10px 0 30px rgba(0, 0, 0, 0.35);
+    z-index: 1055;
   }
+
   #sidebar.show {
     transform: translateX(0);
   }
+
   #main-content {
     margin-left: 0 !important;
     width: 100% !important;
   }
+
   #app-wrapper.sidebar-collapsed #sidebar {
-    width: var(--sidebar-width);
+    width: 280px;
     transform: translateX(-100%);
   }
+
   #app-wrapper.sidebar-collapsed #sidebar.show {
     transform: translateX(0);
   }
+
   #app-wrapper.sidebar-collapsed #sidebar .brand-logo span,
   #app-wrapper.sidebar-collapsed #sidebar .nav-link span,
   #app-wrapper.sidebar-collapsed #sidebar .nav-heading,
@@ -757,16 +944,707 @@ body {
   #app-wrapper.sidebar-collapsed #sidebar .badge {
     display: inline-block !important;
   }
+
   #app-wrapper.sidebar-collapsed #main-content {
     margin-left: 0 !important;
     width: 100% !important;
   }
+
+  .top-navbar {
+    padding: 0 1.25rem;
+  }
+
+  .page-container {
+    padding: 1.25rem 1rem;
+  }
+
+  /* POS Stacked Layout on Tablet & Mobile */
   .pos-container {
     flex-direction: column;
     height: auto;
+    gap: 1.25rem;
+    overflow: visible;
   }
+
+  .pos-products-panel {
+    width: 100%;
+    overflow: visible;
+  }
+
+  .pos-product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-auto-rows: 195px;
+    gap: 0.75rem;
+    max-height: 520px;
+    overflow-y: auto;
+  }
+
   .pos-cart-panel {
     width: 100%;
-    height: 500px;
+    height: auto;
+    min-height: 420px;
+    overflow: visible;
+    margin-bottom: 2rem;
+  }
+
+  .pos-cart-items {
+    max-height: 320px;
+    overflow-y: auto;
   }
 }
+
+/* Small Mobile Screens (< 576px) */
+@media (max-width: 575.98px) {
+  .top-navbar {
+    padding: 0 0.75rem;
+    height: 62px;
+  }
+
+  .page-container {
+    padding: 0.85rem 0.6rem;
+  }
+
+  .stat-widget {
+    padding: 1rem;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+  }
+
+  .stat-widget .stat-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+  }
+
+  /* Two Column Product Cards on Mobile */
+  .pos-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 185px;
+    gap: 0.5rem;
+    max-height: 440px;
+  }
+
+  .pos-product-card {
+    padding: 0.65rem 0.55rem;
+    min-height: 185px;
+  }
+
+  .pos-card-title {
+    font-size: 0.82rem;
+    height: 2.5em;
+  }
+
+  .pos-product-card .item-price {
+    font-size: 0.95rem;
+  }
+
+  .pos-category-btn {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  /* Full width action buttons on small mobile */
+  .btn-mobile-w100 {
+    width: 100% !important;
+  }
+
+  .btn-touch-target {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Compact toasts on mobile */
+  .toast-container {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+  }
+}
+
+/* Responsive Invoice Card */
+@media (max-width: 767.98px) {
+  .invoice-card {
+    padding: 1.5rem 1.15rem;
+    margin: 1rem auto;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .invoice-card {
+    padding: 1.15rem 0.85rem;
+    margin: 0.5rem auto;
+    border-radius: var(--radius-md);
+  }
+}
+
+/* Responsive Razorpay Clone Simulation */
+@media (max-width: 767.98px) {
+  .rzp-sidebar {
+    min-height: auto !important;
+    padding: 1.25rem !important;
+  }
+
+  #rzp-clone-main-view {
+    padding: 1.25rem !important;
+    min-height: auto !important;
+  }
+
+  #rzp-clone-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  #rzp-clone-tabs .nav-item {
+    flex-shrink: 0;
+  }
+
+  #razorpayCloneModal .modal-dialog {
+    margin: 0.5rem;
+  }
+}
+
+/* -------------------------------------------------------------
+   Payment Gateways Styling
+   ------------------------------------------------------------- */
+#payment-gateway-selector .btn-check:checked + .btn-outline-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #fff !important;
+  border-color: #059669 !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+#payment-gateway-selector .btn-check:checked + .btn-outline-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  color: #fff !important;
+  border-color: #1d4ed8 !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+#payment-gateway-selector .btn-check:checked + .btn-outline-info {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+  color: #fff !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+}
+
+#payment-gateway-selector .btn-check:checked + .btn-outline-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #fff !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+}
+
+#payment-gateway-selector .btn-check:checked + .btn-outline-secondary {
+  background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
+  color: #fff !important;
+  border-color: #334155 !important;
+  box-shadow: 0 4px 12px rgba(71, 85, 105, 0.35);
+}
+
+#payment-gateway-selector label {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+#payment-gateway-selector label:hover {
+  transform: translateY(-2px);
+}
+
+#upi-qr-wrapper {
+  background: #ffffff;
+  border: 2px dashed #10b981 !important;
+  transition: transform 0.2s ease;
+}
+
+#upi-qr-wrapper:hover {
+  transform: scale(1.02);
+}
+
+@media (min-width: 768px) {
+  .border-end-md {
+    border-right: 1px solid #e2e8f0;
+  }
+}
+
+/* ===================================================================
+   Razorpay Clone Simulation & Signature Opening Animations
+   =================================================================== */
+
+/* 1. Backdrop Styling - Razorpay Navy Frosted Blur */
+.modal-backdrop.show.rzp-backdrop,
+#razorpayCloneModal ~ .modal-backdrop.show {
+  background-color: #051326;
+  opacity: 0.78 !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.3s ease;
+}
+
+/* 2. Spring / Elastic Modal Pop-in Opening Animation (Signature Razorpay) */
+#razorpayCloneModal.modal.fade .modal-dialog {
+  transform: scale(0.86) translateY(28px);
+  opacity: 0;
+  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.28s ease-out;
+}
+
+#razorpayCloneModal.modal.show .modal-dialog {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+#razorpayCloneModal .modal-content {
+  border-radius: 20px !important;
+  overflow: hidden;
+  box-shadow: 0 25px 65px -10px rgba(7, 23, 44, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+/* 3. Navy Sidebar & Diagonal Shimmer Sweep */
+.rzp-sidebar {
+  position: relative;
+  background: linear-gradient(180deg, #0c2340 0%, #07172c 100%);
+  overflow: hidden;
+}
+
+.rzp-sidebar::before {
+  content: '';
+  position: absolute;
+  top: -60%;
+  left: -80%;
+  width: 120%;
+  height: 220%;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 40%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 60%,
+    transparent 100%
+  );
+  transform: rotate(20deg);
+  animation: rzpShimmerSweep 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes rzpShimmerSweep {
+  0% { transform: translateY(-100%) rotate(20deg); }
+  35%, 100% { transform: translateY(120%) rotate(20deg); }
+}
+
+/* 4. Razorpay Brand Shield Glow & Pulse */
+.rzp-shield-icon {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.45);
+  animation: rzpShieldPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes rzpShieldPulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(2, 132, 199, 0.4), 0 0 0 0 rgba(2, 132, 199, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(2, 132, 199, 0.7), 0 0 0 6px rgba(2, 132, 199, 0.0);
+    transform: scale(1.04);
+  }
+}
+
+/* 5. Amount Card in Sidebar */
+.rzp-amount-card {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+  position: relative;
+}
+
+/* 6. UPI QR Laser Scanner Beam */
+.rzp-qr-box {
+  position: relative;
+  display: inline-block;
+  padding: 10px;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 18px rgba(12, 35, 64, 0.08);
+  overflow: hidden;
+}
+
+.rzp-laser-beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #10b981 30%, #34d399 50%, #10b981 70%, transparent 100%);
+  box-shadow: 0 0 12px #10b981, 0 0 6px #34d399;
+  border-radius: 2px;
+  animation: rzpLaserSweep 2.2s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes rzpLaserSweep {
+  0% {
+    top: 6%;
+    opacity: 0.2;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    top: 94%;
+    opacity: 0.2;
+  }
+}
+
+/* 7. Tabs Styling */
+#rzp-clone-tabs .nav-link {
+  color: #64748b;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-weight: 600;
+}
+
+#rzp-clone-tabs .nav-link:hover {
+  color: #0c2340;
+  background: rgba(12, 35, 64, 0.05);
+}
+
+#rzp-clone-tabs .nav-link.active {
+  background: #0c2340 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(12, 35, 64, 0.25);
+  transform: translateY(-1px);
+}
+
+/* Quick UPI App Cards */
+.rzp-quick-app-btn {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.rzp-quick-app-btn:hover {
+  background-color: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.15);
+}
+
+.rzp-quick-app-btn.active-app {
+  border-color: #0284c7 !important;
+  background-color: #f0f9ff !important;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+/* 8. Pay Button with Continuous Sheen Animation */
+#btn-rzp-clone-pay {
+  position: relative;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+  border: none;
+  font-size: 1rem;
+  letter-spacing: 0.3px;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.38);
+  transition: all 0.25s ease;
+  overflow: hidden;
+}
+
+#btn-rzp-clone-pay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 100%
+  );
+  transform: skewX(-25deg);
+  animation: rzpBtnSheen 3.2s ease-in-out infinite;
+}
+
+@keyframes rzpBtnSheen {
+  0%, 60% { left: -100%; }
+  100% { left: 160%; }
+}
+
+#btn-rzp-clone-pay:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%) !important;
+  transform: translateY(-1.5px);
+  box-shadow: 0 8px 22px rgba(2, 132, 199, 0.48);
+}
+
+#btn-rzp-clone-pay:active {
+  transform: translateY(0);
+}
+
+/* 9. Slide-In View Transitions (Main -> 3DS OTP -> Success) */
+.rzp-slide-in {
+  animation: rzpSlideInRight 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes rzpSlideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.rzp-fade-in {
+  animation: rzpFadeIn 0.25s ease-out forwards;
+}
+
+@keyframes rzpFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 10. Success View Checkmark Pop */
+.rzp-success-circle {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 24px rgba(16, 185, 129, 0.35);
+  animation: rzpSuccessBounce 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes rzpSuccessBounce {
+  0% {
+    transform: scale(0.3) rotate(-20deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.15) rotate(5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Input Focus Glows */
+#rzp-otp-input:focus,
+#rzp-clone-card-num:focus,
+#rzp-clone-vpa:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 0.2rem rgba(2, 132, 199, 0.2);
+}
+
+/* ===================================================================
+   Real-Time Live Sync Status Indicator & Row Flash Animations
+   =================================================================== */
+
+.realtime-status-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 0.85rem;
+  background: #ffffff;
+  border: 1px solid var(--card-border);
+  border-radius: 9999px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  gap: 0.5rem;
+  user-select: none;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.realtime-status-pill:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.08);
+}
+
+.realtime-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.realtime-status-text {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.realtime-status-divider {
+  width: 1px;
+  height: 14px;
+  background-color: #e2e8f0;
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+.realtime-last-sync {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #64748b;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.realtime-sync-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  padding: 0;
+  margin-left: 2px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.85rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.realtime-sync-btn:hover {
+  background: #f1f5f9;
+  color: #10b981;
+}
+
+.realtime-sync-btn:active {
+  transform: scale(0.9);
+}
+
+.realtime-pulse-dot.pulse-green {
+  background-color: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: realtimePulseGreen 2s infinite;
+}
+
+.realtime-pulse-dot.pulse-amber {
+  background-color: #f59e0b;
+  box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  animation: realtimePulseAmber 1.5s infinite;
+}
+
+.realtime-pulse-dot.pulse-red {
+  background-color: #ef4444;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+}
+
+@keyframes realtimePulseGreen {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes realtimePulseAmber {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  }
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+/* Row Flash Highlight when new record is dynamically injected */
+.realtime-row-glow {
+  animation: realtimeRowFade 3.5s ease-out forwards;
+}
+
+@keyframes realtimeRowFade {
+  0% {
+    background-color: rgba(16, 185, 129, 0.22) !important;
+  }
+  70% {
+    background-color: rgba(16, 185, 129, 0.08) !important;
+  }
+  100% {
+    background-color: transparent !important;
+  }
+}
+
+/* Metric / Counter Flash when value changes in real time */
+.realtime-val-flash {
+  animation: realtimeValPulse 1.2s ease-out forwards;
+}
+
+@keyframes realtimeValPulse {
+  0% {
+    color: #059669 !important;
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    transform: scale(1.04);
+  }
+  100% {
+    color: inherit;
+    text-shadow: none;
+    transform: scale(1);
+  }
+}
+
+/* Spin animation for manual sync button */
+.spin-animation {
+  display: inline-block;
+  animation: rotateSpin 0.7s linear infinite;
+}
+
+@keyframes rotateSpin {
+  100% { transform: rotate(360deg); }
+}
+
+
+
+

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('New Purchase Invoice')}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('purchase-invoices')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Record Purchase Invoice')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container">
+            <div class="mb-4" data-aos="fade-down">
+                <a th:href="@{/purchases/invoices}" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Purchase Invoices
+                </a>
+                <h3 class="fw-bold mb-1">Record Inward Purchase Invoice</h3>
+                <p class="text-muted mb-0">Record merchandise received from suppliers and update stock inventory</p>
+            </div>
+
+            <form th:action="@{/purchases/invoices/save}" th:object="${form}" method="post" id="pinv-form">
+                <div class="row g-4">
+                    <!-- Left: Invoice Meta -->
+                    <div class="col-12 col-lg-4" data-aos="fade-up">
+                        <div class="card-modern p-4 mb-4">
+                            <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                                <i class="bi bi-receipt text-success"></i>Invoice Information
+                            </h5>
+
+                            <div class="mb-3">
+                                <label for="supplierId" class="form-label fw-semibold small text-secondary">Supplier <span class="text-danger">*</span></label>
+                                <select class="form-select" id="supplierId" th:field="*{supplierId}" required>
+                                    <option value="" disabled selected>-- Select Supplier --</option>
+                                    <option th:each="sup : ${suppliers}" th:value="${sup.id}" th:text="${sup.name}">Supplier</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="invoiceNumber" class="form-label fw-semibold small text-secondary">Supplier Invoice / Bill No.</label>
+                                <input type="text" class="form-control font-monospace" id="invoiceNumber" th:field="*{invoiceNumber}" placeholder="e.g. MILMA-2026-9812 (Leave blank to auto-generate)">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="purchaseOrderId" class="form-label fw-semibold small text-secondary">Linked Purchase Order (Optional)</label>
+                                <select class="form-select" id="purchaseOrderId" th:field="*{purchaseOrderId}">
+                                    <option value="">-- Direct Purchase (No PO) --</option>
+                                    <option th:each="po : ${orders}" th:value="${po.id}" th:text="${po.poNumber + ' - ' + po.supplier.name}">PO</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="invoiceDate" class="form-label fw-semibold small text-secondary">Invoice Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="invoiceDate" th:field="*{invoiceDate}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="paymentStatus" class="form-label fw-semibold small text-secondary">Payment Status</label>
+                                <select class="form-select" id="paymentStatus" th:field="*{paymentStatus}">
+                                    <option th:each="ps : ${paymentStatuses}" th:value="${ps}" th:text="${ps.displayName}">Status</option>
+                                </select>
+                            </div>
+
+                            <div class="p-3 mb-3 rounded-3 bg-success-subtle border border-success-subtle">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="postImmediately" th:field="*{postImmediately}" checked>
+                                    <label class="form-check-label fw-bold text-success small" for="postImmediately">
+                                        Post Inward Stock Immediately
+                                    </label>
+                                </div>
+                                <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                    Automatically increases product quantities in inventory upon saving.
+                                </div>
+                            </div>
+
+                            <div class="mb-0">
+                                <label for="notes" class="form-label fw-semibold small text-secondary">Invoice Notes</label>
+                                <textarea class="form-control" id="notes" th:field="*{notes}" rows="2" placeholder="e.g. Batch #441, verified by Store Manager"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Totals Card -->
+                        <div class="card-modern p-4 bg-light border">
+                            <h6 class="fw-bold mb-3">Invoice Totals</h6>
+                            <div class="d-flex justify-content-between mb-2 text-muted small">
+                                <span>Total Taxable Subtotal:</span>
+                                <strong id="summary-subtotal" class="text-dark">₹0.00</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 text-muted small">
+                                <span>Input GST (5%):</span>
+                                <strong id="summary-tax" class="text-dark">₹0.00</strong>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold fs-6">Invoice Grand Total:</span>
+                                <span class="fw-extrabold fs-4 text-success" id="summary-grand-total">₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Items -->
+                    <div class="col-12 col-lg-8" data-aos="fade-up" data-aos-delay="100">
+                        <div class="card-modern p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                                    <i class="bi bi-box-seam text-primary"></i>Inward Received Merchandise
+                                </h5>
+                                <button type="button" class="btn btn-sm btn-outline-success d-flex align-items-center gap-1" id="btn-add-line">
+                                    <i class="bi bi-plus-circle"></i>Add Line Item
+                                </button>
+                            </div>
+
+                            <div class="table-responsive mb-3">
+                                <table class="table table-bordered align-middle mb-0" id="inv-items-table">
+                                    <thead class="table-light text-muted small text-uppercase">
+                                        <tr>
+                                            <th style="min-width: 220px;">Product Name &amp; SKU</th>
+                                            <th style="width: 100px;">Qty</th>
+                                            <th style="width: 130px;">Unit Cost (₹)</th>
+                                            <th style="width: 110px;">Tax (₹)</th>
+                                            <th style="width: 130px;" class="text-end">Subtotal (₹)</th>
+                                            <th style="width: 40px;" class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inv-items-tbody">
+                                        <tr class="inv-item-row">
+                                            <td>
+                                                <select class="form-select form-select-sm product-select" name="productIds" required>
+                                                    <option value="" disabled selected>-- Select Product --</option>
+                                                    <option th:each="p : ${products}" th:value="${p.id}" th:attr="data-cost=${p.costPrice}" th:text="${p.name + ' (SKU: ' + p.barcode + ')'}">Product</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control form-control-sm item-qty text-center" name="quantities" value="10" min="1" required>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control form-control-sm item-cost text-end" name="unitCosts" value="0.00" step="0.50" min="0" required>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control form-control-sm item-tax text-end" name="taxAmounts" value="0.00" step="0.10" min="0">
+                                            </td>
+                                            <td class="text-end fw-bold text-dark item-subtotal">₹0.00</td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-light text-danger rounded-circle p-1 btn-remove-row" title="Remove">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 pt-3 border-top">
+                                <a th:href="@{/purchases/invoices}" class="btn btn-light px-4 w-100 w-sm-auto text-center">Cancel</a>
+                                <button type="submit" class="btn btn-primary-gradient px-4 py-2 fw-bold d-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto">
+                                    <i class="bi bi-check2-circle fs-5"></i>
+                                    <span>Save &amp; Inward Stock</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tbody = document.getElementById('inv-items-tbody');
+        const btnAdd = document.getElementById('btn-add-line');
+
+        function bindRowEvents(row) {
+            const select = row.querySelector('.product-select');
+            const qtyInput = row.querySelector('.item-qty');
+            const costInput = row.querySelector('.item-cost');
+            const taxInput = row.querySelector('.item-tax');
+            const subtotalEl = row.querySelector('.item-subtotal');
+            const btnRemove = row.querySelector('.btn-remove-row');
+
+            select.addEventListener('change', function () {
+                const selectedOpt = this.options[this.selectedIndex];
+                const cost = selectedOpt.getAttribute('data-cost') || '0.00';
+                costInput.value = parseFloat(cost).toFixed(2);
+                recalcRow();
+            });
+
+            qtyInput.addEventListener('input', recalcRow);
+            costInput.addEventListener('input', recalcRow);
+            taxInput.addEventListener('input', recalcRow);
+
+            if (btnRemove) {
+                btnRemove.addEventListener('click', function () {
+                    if (tbody.querySelectorAll('.inv-item-row').length > 1) {
+                        row.remove();
+                        recalcAll();
+                    } else {
+                        alert('At least one line item is required.');
+                    }
+                });
+            }
+
+            function recalcRow() {
+                const qty = parseInt(qtyInput.value) || 0;
+                const cost = parseFloat(costInput.value) || 0;
+                const sub = (qty * cost);
+                // Compute auto 5% tax if taxInput is 0 or unchanged
+                const autoTax = (sub * 0.05).toFixed(2);
+                if (!taxInput.dataset.manual) {
+                    taxInput.value = autoTax;
+                }
+                subtotalEl.textContent = '₹' + sub.toFixed(2);
+                recalcAll();
+            }
+
+            taxInput.addEventListener('change', function () {
+                this.dataset.manual = 'true';
+            });
+        }
+
+        function recalcAll() {
+            let totalSub = 0;
+            let totalTax = 0;
+            const rows = tbody.querySelectorAll('.inv-item-row');
+            rows.forEach(r => {
+                const q = parseInt(r.querySelector('.item-qty').value) || 0;
+                const c = parseFloat(r.querySelector('.item-cost').value) || 0;
+                const t = parseFloat(r.querySelector('.item-tax').value) || 0;
+                totalSub += (q * c);
+                totalTax += t;
+            });
+
+            document.getElementById('summary-subtotal').textContent = '₹' + totalSub.toFixed(2);
+            document.getElementById('summary-tax').textContent = '₹' + totalTax.toFixed(2);
+            document.getElementById('summary-grand-total').textContent = '₹' + (totalSub + totalTax).toFixed(2);
+        }
+
+        tbody.querySelectorAll('.inv-item-row').forEach(bindRowEvents);
+
+        btnAdd.addEventListener('click', function () {
+            const firstRow = tbody.querySelector('.inv-item-row');
+            const newRow = firstRow.cloneNode(true);
+            newRow.querySelector('.product-select').selectedIndex = 0;
+            newRow.querySelector('.item-qty').value = '10';
+            newRow.querySelector('.item-cost').value = '0.00';
+            newRow.querySelector('.item-tax').value = '0.00';
+            delete newRow.querySelector('.item-tax').dataset.manual;
+            newRow.querySelector('.item-subtotal').textContent = '₹0.00';
+            tbody.appendChild(newRow);
+            bindRowEvents(newRow);
+            recalcAll();
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Process Customer Return')}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('sale-returns')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Process Customer Sale Return')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container">
+            <div class="mb-4" data-aos="fade-down">
+                <a th:href="@{/returns/sales}" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Sale Returns
+                </a>
+                <h3 class="fw-bold mb-1">Process Customer Sale Return</h3>
+                <p class="text-muted mb-0">Select original bill and choose items to refund &amp; return to stock</p>
+            </div>
+
+            <!-- Step 1: Select Original Sale if not selected -->
+            <div class="card-modern p-4 mb-4" th:if="${selectedSale == null}" data-aos="fade-up">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-search text-primary"></i>Step 1: Select Original Sale Bill
+                </h5>
+                <form th:action="@{/returns/sales/new}" method="get" class="row g-3 align-items-end">
+                    <div class="col-12 col-md-8">
+                        <label for="saleSelect" class="form-label fw-semibold small text-secondary">Choose Past Invoice to Refund</label>
+                        <select class="form-select" id="saleSelect" name="saleId" required>
+                            <option value="" disabled selected>-- Select Invoice Number / Customer --</option>
+                            <option th:each="s : ${allSales}" th:value="${s.id}" th:text="${s.invoiceNumber + ' - ' + s.customerName + ' (₹' + #numbers.formatDecimal(s.grandTotal, 1, 2) + ') on ' + #temporals.format(s.saleDate, 'dd MMM yyyy, HH:mm')}">Invoice</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                            <i class="bi bi-arrow-right-circle me-1"></i>Load Invoice Items
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 2: Return Items Form once sale is selected -->
+            <div th:if="${selectedSale != null}">
+                <div class="card-modern p-4 mb-4 border-start border-4 border-success" data-aos="fade-down">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <span class="badge bg-success-subtle text-success fw-bold px-2 py-1 mb-1">Active Invoice Selected</span>
+                            <h5 class="fw-bold mb-0 text-dark" th:text="${selectedSale.invoiceNumber + ' - ' + selectedSale.customerName}">INV-2026</h5>
+                            <span class="text-muted small" th:text="${'Billed on: ' + #temporals.format(selectedSale.saleDate, 'dd MMM yyyy, HH:mm') + ' &bull; Original Total: ₹' + #numbers.formatDecimal(selectedSale.grandTotal, 1, 2)}">Billed on Date</span>
+                        </div>
+                        <a th:href="@{/returns/sales/new}" class="btn btn-sm btn-outline-secondary">Choose Different Bill</a>
+                    </div>
+                </div>
+
+                <form th:action="@{/returns/sales/save}" th:object="${form}" method="post" id="return-form">
+                    <input type="hidden" th:field="*{saleId}">
+
+                    <div class="row g-4">
+                        <div class="col-12 col-lg-8" data-aos="fade-up">
+                            <div class="card-modern p-4">
+                                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i class="bi bi-arrow-return-left text-info"></i>Items to Return &amp; Refund
+                                </h5>
+
+                                <div class="table-responsive mb-3">
+                                    <table class="table table-bordered align-middle mb-0">
+                                        <thead class="table-light text-muted small text-uppercase">
+                                            <tr>
+                                                <th>Product</th>
+                                                <th class="text-center" style="width: 100px;">Sold Qty</th>
+                                                <th class="text-center" style="width: 130px;">Return Qty</th>
+                                                <th class="text-end" style="width: 130px;">Refund Rate</th>
+                                                <th class="text-end" style="width: 130px;">Refund Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="si : ${selectedSale.items}" class="return-item-row">
+                                                <td>
+                                                    <input type="hidden" name="productIds" th:value="${si.product.id}">
+                                                    <strong class="text-dark" th:text="${si.productName}">Product</strong>
+                                                    <div class="text-muted small" th:text="${'SKU: ' + si.product.barcode}">SKU</div>
+                                                </td>
+                                                <td class="text-center fw-semibold text-secondary" th:text="${si.quantity}">1</td>
+                                                <td>
+                                                    <input type="number" class="form-control form-control-sm text-center return-qty" name="quantities" value="0" min="0" th:max="${si.quantity}" th:attr="data-price=${si.unitPrice}">
+                                                </td>
+                                                <td class="text-end text-muted" th:text="${'₹' + #numbers.formatDecimal(si.unitPrice, 1, 2)}">₹0.00</td>
+                                                <td class="text-end fw-bold text-danger item-refund-subtotal">₹0.00</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="form-text small text-muted">
+                                    Specify quantity to return for each item. Items with quantity 0 will not be refunded.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                            <div class="card-modern p-4 mb-3">
+                                <h6 class="fw-bold mb-3">Return Reason &amp; Refund</h6>
+                                <div class="mb-3">
+                                    <label for="reason" class="form-label fw-semibold small text-secondary">Reason for Return <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="reason" th:field="*{reason}" required>
+                                        <option value="Customer changed mind / Unwanted">Customer changed mind / Unwanted</option>
+                                        <option value="Damaged / Defective pack">Damaged / Defective pack</option>
+                                        <option value="Expired / Nearing expiry">Expired / Nearing expiry</option>
+                                        <option value="Billed incorrectly / Wrong quantity">Billed incorrectly / Wrong quantity</option>
+                                        <option value="Quality dissatisfaction">Quality dissatisfaction</option>
+                                    </select>
+                                </div>
+
+                                <hr class="my-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="fw-bold fs-6">Total Refund Amount:</span>
+                                    <span class="fw-extrabold fs-4 text-danger" id="summary-refund-total">₹0.00</span>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary-gradient w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2">
+                                    <i class="bi bi-check2-circle fs-5"></i>
+                                    <span>Confirm Refund &amp; Restore Stock</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const rows = document.querySelectorAll('.return-item-row');
+        const summaryTotal = document.getElementById('summary-refund-total');
+
+        function recalcReturns() {
+            let total = 0;
+            rows.forEach(r => {
+                const input = r.querySelector('.return-qty');
+                const subtotalEl = r.querySelector('.item-refund-subtotal');
+                const qty = parseInt(input.value) || 0;
+                const price = parseFloat(input.dataset.price) || 0;
+                const sub = qty * price;
+                subtotalEl.textContent = '₹' + sub.toFixed(2);
+                total += sub;
+            });
+            if (summaryTotal) {
+                summaryTotal.textContent = '₹' + total.toFixed(2);
+            }
+        }
+
+        rows.forEach(r => {
+            const input = r.querySelector('.return-qty');
+            input.addEventListener('input', recalcReturns);
+        });
+
+        recalcReturns();
+    });
+</script>
+
+</body>
+</html>

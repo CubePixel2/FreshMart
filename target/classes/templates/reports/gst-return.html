@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('VAT / GST Return')}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('report-gst')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('VAT / GST Return')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container" id="gst-report-container">
+            <!-- Page Title & Actions -->
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3 no-print" data-aos="fade-down">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                        <h3 class="fw-bold mb-0">
+                            <i class="bi bi-calculator text-danger me-2"></i>VAT / GST Statutory Tax Return
+                        </h3>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small">
+                            <span class="realtime-pulse-dot pulse-green me-1"></span>Live Real-Time
+                        </span>
+                    </div>
+                    <p class="text-muted mb-0">Monthly / Quarterly tax summary (GSTR-3B format), Output GST, Input Tax Credit (ITC) &amp; Net Payable</p>
+                </div>
+                <div class="d-flex flex-wrap gap-2 w-100 w-sm-auto">
+                    <button type="button" onclick="window.print()" class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0">
+                        <i class="bi bi-printer"></i>
+                        <span>Print Tax Return</span>
+                    </button>
+                    <a th:href="@{/reports/profit-loss(startDate=${startDate}, endDate=${endDate})}" class="btn btn-outline-success d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        <span>Profit &amp; Loss</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Date Range Filter Card -->
+            <div class="card-modern p-4 mb-4 no-print" data-aos="fade-up">
+                <form th:action="@{/reports/gst-return}" method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label small fw-semibold text-muted mb-1">From Tax Period</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-calendar-event"></i></span>
+                            <input type="date" name="startDate" th:value="${startDate}" class="form-control border-start-0" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label small fw-semibold text-muted mb-1">To Tax Period</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-calendar-check"></i></span>
+                            <input type="date" name="endDate" th:value="${endDate}" class="form-control border-start-0" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary-gradient flex-grow-1 d-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-funnel"></i>
+                            <span>Compute GST</span>
+                        </button>
+                        <a th:href="@{/reports/gst-return}" class="btn btn-light border px-3" title="Reset to current month">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Summary KPI Cards -->
+            <div class="row g-3 mb-4 no-print" data-aos="fade-up" data-aos-delay="50">
+                <div class="col-sm-6 col-xl-3">
+                    <div class="card-modern p-3 border-start border-4 border-primary h-100">
+                        <span class="text-muted small fw-semibold text-uppercase">Taxable Sales</span>
+                        <h4 class="fw-bold mb-1 text-primary" id="gst-taxable-sales">₹<span th:text="${#numbers.formatDecimal(report.taxableSales, 1, 2)}">0.00</span></h4>
+                        <div class="text-muted small">Outward gross turnover</div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3">
+                    <div class="card-modern p-3 border-start border-4 border-warning h-100">
+                        <span class="text-muted small fw-semibold text-uppercase">Gross Output GST</span>
+                        <h4 class="fw-bold mb-1 text-warning" id="gst-output-tax">₹<span th:text="${#numbers.formatDecimal(report.outputGstTotal, 1, 2)}">0.00</span></h4>
+                        <div class="text-muted small">Collected on customer sales</div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3">
+                    <div class="card-modern p-3 border-start border-4 border-info h-100">
+                        <span class="text-muted small fw-semibold text-uppercase">Input Tax Credit (ITC)</span>
+                        <h4 class="fw-bold mb-1 text-info" id="gst-input-itc">₹<span th:text="${#numbers.formatDecimal(report.inputGstTotal, 1, 2)}">0.00</span></h4>
+                        <div class="text-muted small">Paid on purchase invoices</div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3">
+                    <div class="card-modern p-3 border-start border-4 border-danger h-100">
+                        <span class="text-muted small fw-semibold text-uppercase">Net GST Payable</span>
+                        <h4 class="fw-bold mb-1 text-danger" id="gst-net-payable">₹<span th:text="${#numbers.formatDecimal(report.netGstPayable, 1, 2)}">0.00</span></h4>
+                        <div class="text-muted small">Output GST minus Input ITC</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Printable Tax Return Sheet -->
+            <div class="card-modern p-4 p-md-5 mb-5 shadow-sm" data-aos="fade-up" data-aos-delay="100">
+                <!-- Company & GSTIN Header -->
+                <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4 flex-wrap gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-cart4 text-success fs-3"></i>
+                            <h3 class="fw-bold mb-0">FreshMart Supermarket</h3>
+                        </div>
+                        <div class="text-muted small">MG Road, Ernakulam, Kochi, Kerala 682016</div>
+                        <div class="text-dark fw-bold small mt-1">
+                            GSTIN: <span class="font-monospace text-primary">32AABCF1234F1Z8</span> | State: <span class="badge bg-light text-dark border">32 - KERALA</span>
+                        </div>
+                    </div>
+                    <div class="text-md-end">
+                        <span class="badge bg-danger px-3 py-2 text-uppercase mb-2">Form GSTR-3B Return Summary</span>
+                        <div class="fw-bold text-dark">
+                            Tax Period:
+                            <span th:text="${#temporals.format(startDate, 'dd MMM yyyy')}">01 Sep 2026</span>
+                            to
+                            <span th:text="${#temporals.format(endDate, 'dd MMM yyyy')}">30 Sep 2026</span>
+                        </div>
+                        <div class="text-muted small">Status: Reconciled &amp; Ready for Filing</div>
+                    </div>
+                </div>
+
+                <!-- Section 3.1: Outward Supplies -->
+                <div class="mb-4">
+                    <h5 class="fw-bold text-secondary mb-3">
+                        <span class="badge bg-primary me-2">3.1</span>Details of Outward Supplies (Sales)
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle mb-0">
+                            <thead class="table-light text-uppercase small text-muted">
+                                <tr>
+                                    <th>Nature of Supply</th>
+                                    <th class="text-end">Total Taxable Value (₹)</th>
+                                    <th class="text-end">Central Tax / CGST (₹)</th>
+                                    <th class="text-end">State Tax / SGST (₹)</th>
+                                    <th class="text-end">Total Output Tax (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">(a) Outward taxable supplies (other than zero-rated, nil and exempted)</div>
+                                        <div class="text-muted small">POS retail grocery, packaged foods, and household sales</div>
+                                    </td>
+                                    <td class="text-end font-monospace">
+                                        ₹<span th:text="${#numbers.formatDecimal(report.taxableSales, 1, 2)}">0.00</span>
+                                    </td>
+                                    <td class="text-end font-monospace">
+                                        ₹<span th:text="${#numbers.formatDecimal(report.outputCgst, 1, 2)}">0.00</span>
+                                    </td>
+                                    <td class="text-end font-monospace">
+                                        ₹<span th:text="${#numbers.formatDecimal(report.outputSgst, 1, 2)}">0.00</span>
+                                    </td>
+                                    <td class="text-end font-monospace fw-bold text-dark">
+                                        ₹<span th:text="${#numbers.formatDecimal(report.outputGstTotal, 1, 2)}">0.00</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 4: Eligible Input Tax Credit -->
+                <div class="mb-4">
+                    <h5 class="fw-bold text-secondary mb-3">
+                        <span class="badge bg-info me-2">4.0</span>Eligible Input Tax Credit (ITC - Purchases)
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle mb-0">
+                            <thead class="table-light text-uppercase small text-muted">
+                                <tr>
+                                    <th>Details of Inward Supplies</th>
+                                    <th class="text-end">Taxable Inward Value (₹)</th>
+                                    <th class="text-end">Central Tax / CGST (₹)</th>
+                                    <th class="text-end">State Tax / SGST (₹)</th>
+                                    <th class="text-end">Total Available ITC (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">(A) ITC Available (whether in full or part)</div>
+                                        <div class="text-muted small">Inward supplies from registered FMCG &amp; dairy suppliers (Milma, Kera, etc.)</div>
+                                    </td>
+                                    <td class="text-end font-monospace">
+                                        ₹<span th:text="${#numbers.formatDecimal(report.taxablePurchases, 1, 2)}">0.00</span>
+                                    </td>
+                                    <td class="text-end font-monospace text-info">
+                                        ₹<span th:text="${#numbers.formatDecimal(report.inputCgst, 1, 2)}">0.00</span>
+                                    </td>
+                                    <td class="text-end font-monospace text-info">
+                                        ₹<span th:text="${#numbers.formatDecimal(report.inputSgst, 1, 2)}">0.00</span>
+                                    </td>
+                                    <td class="text-end font-monospace fw-bold text-info">
+                                        ₹<span th:text="${#numbers.formatDecimal(report.inputGstTotal, 1, 2)}">0.00</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 5: Returns & Credit Note Adjustments -->
+                <div class="mb-4">
+                    <h5 class="fw-bold text-secondary mb-3">
+                        <span class="badge bg-warning text-dark me-2">5.0</span>Credit Note &amp; Reverse Adjustments
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle mb-0">
+                            <thead class="table-light text-uppercase small text-muted">
+                                <tr>
+                                    <th>Adjustment Description</th>
+                                    <th class="text-end">Turnover Adjusted (₹)</th>
+                                    <th class="text-end">Tax Adjustment Impact (₹)</th>
+                                    <th class="text-end">Applied Effect</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">Customer Sale Returns</div>
+                                        <div class="text-muted small">Credit notes issued for customer returned grocery goods</div>
+                                    </td>
+                                    <td class="text-end font-monospace text-danger">
+                                        (₹<span th:text="${#numbers.formatDecimal(report.saleReturnsTotal, 1, 2)}">0.00</span>)
+                                    </td>
+                                    <td class="text-end font-monospace text-danger">
+                                        (₹<span th:text="${#numbers.formatDecimal(report.saleReturnsGst, 1, 2)}">0.00</span>)
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-danger-subtle text-danger">Reduces Output Tax Liability</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">Vendor Product Returns (Debit Notes)</div>
+                                        <div class="text-muted small">Damaged/expired goods returned to suppliers</div>
+                                    </td>
+                                    <td class="text-end font-monospace text-warning">
+                                        (₹<span th:text="${#numbers.formatDecimal(report.productReturnsTotal, 1, 2)}">0.00</span>)
+                                    </td>
+                                    <td class="text-end font-monospace text-warning">
+                                        (₹<span th:text="${#numbers.formatDecimal(report.productReturnsGst, 1, 2)}">0.00</span>)
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-warning-subtle text-warning">Reverses Input Tax Credit</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 6: Net Payment of Tax -->
+                <div class="mb-4">
+                    <h5 class="fw-bold text-secondary mb-3">
+                        <span class="badge bg-success me-2">6.0</span>Computation &amp; Payment of Tax
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle mb-0">
+                            <thead class="table-dark text-uppercase small">
+                                <tr>
+                                    <th>Tax Component</th>
+                                    <th class="text-end">Output Tax (₹)</th>
+                                    <th class="text-end">ITC Credit (₹)</th>
+                                    <th class="text-end">Net Tax Payable (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold">Central GST (CGST 2.5% / 9%)</td>
+                                    <td class="text-end font-monospace">₹<span th:text="${#numbers.formatDecimal(report.outputCgst, 1, 2)}">0.00</span></td>
+                                    <td class="text-end font-monospace text-info">₹<span th:text="${#numbers.formatDecimal(report.inputCgst, 1, 2)}">0.00</span></td>
+                                    <td class="text-end font-monospace fw-bold text-danger">₹<span th:text="${#numbers.formatDecimal(report.netCgstPayable, 1, 2)}">0.00</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">State GST (SGST 2.5% / 9% - Kerala)</td>
+                                    <td class="text-end font-monospace">₹<span th:text="${#numbers.formatDecimal(report.outputSgst, 1, 2)}">0.00</span></td>
+                                    <td class="text-end font-monospace text-info">₹<span th:text="${#numbers.formatDecimal(report.inputSgst, 1, 2)}">0.00</span></td>
+                                    <td class="text-end font-monospace fw-bold text-danger">₹<span th:text="${#numbers.formatDecimal(report.netSgstPayable, 1, 2)}">0.00</span></td>
+                                </tr>
+                                <tr class="table-success fw-bold fs-6">
+                                    <td class="text-uppercase py-3">Total Net GST Payable to Government:</td>
+                                    <td class="text-end font-monospace py-3">₹<span th:text="${#numbers.formatDecimal(report.outputGstTotal, 1, 2)}">0.00</span></td>
+                                    <td class="text-end font-monospace text-info py-3">₹<span th:text="${#numbers.formatDecimal(report.inputGstTotal, 1, 2)}">0.00</span></td>
+                                    <td class="text-end font-monospace text-danger fs-5 py-3">₹<span th:text="${#numbers.formatDecimal(report.netGstPayable, 1, 2)}">0.00</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Signatures / Footer for Print -->
+                <div class="d-flex justify-content-between align-items-end mt-5 pt-4 border-top">
+                    <div class="text-muted small">
+                        <div>Verified &amp; Prepared by: <strong sec:authentication="name">Admin</strong> | Kerala GST State Jurisdiction</div>
+                        <div>Generated On: <span th:text="${#temporals.format(#temporals.createNow(), 'dd MMM yyyy, hh:mm a')}">Date</span></div>
+                    </div>
+                    <div class="text-center" style="min-width: 200px;">
+                        <div class="border-bottom border-dark pb-3 mb-1"></div>
+                        <div class="fw-bold small text-uppercase">Tax Practitioner / Authorized Signatory</div>
+                        <div class="text-muted small">FreshMart Statutory Filing</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+</body>
+</html>

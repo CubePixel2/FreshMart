@@ -87,7 +87,7 @@ function initSidebarToggle() {
   const isPosPage = window.location.pathname.includes('/pos');
 
   // Auto-collapse / minimise by default on desktop, or if user previously selected a page, or on POS page
-  if (appWrapper && window.innerWidth > 1200) {
+  if (appWrapper && window.innerWidth >= 992) {
     if (isCollapsed === 'true' || isPosPage || isCollapsed === null) {
       appWrapper.classList.add('sidebar-collapsed');
     }
@@ -96,7 +96,7 @@ function initSidebarToggle() {
   function toggleSidebar(e) {
     if (e) e.preventDefault();
 
-    if (window.innerWidth > 1200) {
+    if (window.innerWidth >= 992) {
       // Desktop: toggle between full width (260px) and compact icon width (72px)
       if (appWrapper) {
         appWrapper.classList.toggle('sidebar-collapsed');
@@ -127,7 +127,7 @@ function initSidebarToggle() {
   if (collapseBtn) {
     collapseBtn.addEventListener('click', function (e) {
       e.preventDefault();
-      if (window.innerWidth > 1200) {
+      if (window.innerWidth >= 992) {
         if (appWrapper) {
           appWrapper.classList.add('sidebar-collapsed');
           localStorage.setItem('freshmart_sidebar_collapsed', 'true');
@@ -148,7 +148,7 @@ function initSidebarToggle() {
     link.addEventListener('click', function () {
       // Remember minimised state across page navigation
       localStorage.setItem('freshmart_sidebar_collapsed', 'true');
-      if (window.innerWidth <= 1200) {
+      if (window.innerWidth < 992) {
         closeOverlaySidebar();
       } else if (appWrapper) {
         appWrapper.classList.add('sidebar-collapsed');
@@ -161,7 +161,7 @@ function initSidebarToggle() {
     if (e.key === 'Escape') {
       if (sidebar.classList.contains('show')) {
         closeOverlaySidebar();
-      } else if (appWrapper && !appWrapper.classList.contains('sidebar-collapsed') && window.innerWidth > 1200) {
+      } else if (appWrapper && !appWrapper.classList.contains('sidebar-collapsed') && window.innerWidth >= 992) {
         appWrapper.classList.add('sidebar-collapsed');
         localStorage.setItem('freshmart_sidebar_collapsed', 'true');
       }

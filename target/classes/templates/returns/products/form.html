@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('New Product Return to Supplier')}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('product-returns')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Return Stock to Supplier')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container">
+            <div class="mb-4" data-aos="fade-down">
+                <a th:href="@{/returns/products}" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Product Returns
+                </a>
+                <h3 class="fw-bold mb-1">Return Stock to Wholesale Supplier</h3>
+                <p class="text-muted mb-0">Record debit note for damaged, expired, or excess inventory returned to supplier</p>
+            </div>
+
+            <form th:action="@{/returns/products/save}" th:object="${form}" method="post" id="pr-form">
+                <div class="row g-4">
+                    <div class="col-12 col-lg-4" data-aos="fade-up">
+                        <div class="card-modern p-4 mb-4">
+                            <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                                <i class="bi bi-truck text-warning"></i>Supplier &amp; Reason
+                            </h5>
+
+                            <div class="mb-3">
+                                <label for="supplierId" class="form-label fw-semibold small text-secondary">Select Supplier <span class="text-danger">*</span></label>
+                                <select class="form-select" id="supplierId" th:field="*{supplierId}" required>
+                                    <option value="" disabled selected>-- Select Supplier --</option>
+                                    <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}">Supplier</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="reason" class="form-label fw-semibold small text-secondary">Return Reason <span class="text-danger">*</span></label>
+                                <select class="form-select" id="reason" th:field="*{reason}" required>
+                                    <option value="Damaged packaging / Broken goods">Damaged packaging / Broken goods</option>
+                                    <option value="Expired / Past shelf life">Expired / Past shelf life</option>
+                                    <option value="Incorrect specification / Wrong batch">Incorrect specification / Wrong batch</option>
+                                    <option value="Excess unsold inventory / Slow mover">Excess unsold inventory / Slow mover</option>
+                                    <option value="Quality defect / Recalled">Quality defect / Recalled</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="card-modern p-4 bg-light border">
+                            <h6 class="fw-bold mb-3">Return Valuation</h6>
+                            <div class="d-flex justify-content-between mb-2 text-muted small">
+                                <span>Total Return Units:</span>
+                                <strong id="summary-total-qty" class="text-dark">0 units</strong>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold fs-6">Debit Note Total:</span>
+                                <span class="fw-extrabold fs-4 text-warning" id="summary-total-cost">₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-8" data-aos="fade-up" data-aos-delay="100">
+                        <div class="card-modern p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                                    <i class="bi bi-box-seam text-primary"></i>Returned Stock Items
+                                </h5>
+                                <button type="button" class="btn btn-sm btn-outline-success d-flex align-items-center gap-1" id="btn-add-line">
+                                    <i class="bi bi-plus-circle"></i>Add Product
+                                </button>
+                            </div>
+
+                            <div class="table-responsive mb-3">
+                                <table class="table table-bordered align-middle mb-0" id="pr-items-table">
+                                    <thead class="table-light text-muted small text-uppercase">
+                                        <tr>
+                                            <th style="min-width: 250px;">Product Name &amp; SKU</th>
+                                            <th style="width: 120px;">Return Qty</th>
+                                            <th style="width: 140px;">Unit Cost (₹)</th>
+                                            <th style="width: 140px;" class="text-end">Subtotal (₹)</th>
+                                            <th style="width: 50px;" class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pr-items-tbody">
+                                        <tr class="pr-item-row">
+                                            <td>
+                                                <select class="form-select form-select-sm product-select" name="productIds" required>
+                                                    <option value="" disabled selected>-- Select Product --</option>
+                                                    <option th:each="p : ${products}" th:value="${p.id}" th:attr="data-cost=${p.costPrice}, data-stock=${p.stockQuantity}" th:text="${p.name + ' (In Stock: ' + p.stockQuantity + ' ' + p.unit + ') - Cost: ₹' + p.costPrice}">Product</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control form-control-sm item-qty text-center" name="quantities" value="1" min="1" required>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control form-control-sm item-cost text-end" name="unitCosts" value="0.00" step="0.50" min="0" required>
+                                            </td>
+                                            <td class="text-end fw-bold text-dark item-subtotal">₹0.00</td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-light text-danger rounded-circle p-1 btn-remove-row" title="Remove">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center gap-2 pt-3 border-top">
+                                <a th:href="@{/returns/products}" class="btn btn-light px-4 w-100 w-sm-auto text-center">Cancel</a>
+                                <button type="submit" class="btn btn-primary-gradient px-4 py-2 fw-bold d-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto">
+                                    <i class="bi bi-check2-circle fs-5"></i>
+                                    <span>Confirm &amp; Deduct Stock</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tbody = document.getElementById('pr-items-tbody');
+        const btnAdd = document.getElementById('btn-add-line');
+
+        function bindRowEvents(row) {
+            const select = row.querySelector('.product-select');
+            const qtyInput = row.querySelector('.item-qty');
+            const costInput = row.querySelector('.item-cost');
+            const subtotalEl = row.querySelector('.item-subtotal');
+            const btnRemove = row.querySelector('.btn-remove-row');
+
+            select.addEventListener('change', function () {
+                const selectedOpt = this.options[this.selectedIndex];
+                const cost = selectedOpt.getAttribute('data-cost') || '0.00';
+                const stock = parseInt(selectedOpt.getAttribute('data-stock')) || 999;
+                costInput.value = parseFloat(cost).toFixed(2);
+                qtyInput.max = stock;
+                recalcRow();
+            });
+
+            qtyInput.addEventListener('input', recalcRow);
+            costInput.addEventListener('input', recalcRow);
+
+            if (btnRemove) {
+                btnRemove.addEventListener('click', function () {
+                    if (tbody.querySelectorAll('.pr-item-row').length > 1) {
+                        row.remove();
+                        recalcAll();
+                    } else {
+                        alert('At least one line item is required.');
+                    }
+                });
+            }
+
+            function recalcRow() {
+                const qty = parseInt(qtyInput.value) || 0;
+                const cost = parseFloat(costInput.value) || 0;
+                subtotalEl.textContent = '₹' + (qty * cost).toFixed(2);
+                recalcAll();
+            }
+        }
+
+        function recalcAll() {
+            let totalCost = 0;
+            let totalQty = 0;
+            const rows = tbody.querySelectorAll('.pr-item-row');
+            rows.forEach(r => {
+                const q = parseInt(r.querySelector('.item-qty').value) || 0;
+                const c = parseFloat(r.querySelector('.item-cost').value) || 0;
+                totalQty += q;
+                totalCost += (q * c);
+            });
+
+            document.getElementById('summary-total-qty').textContent = totalQty + ' units';
+            document.getElementById('summary-total-cost').textContent = '₹' + totalCost.toFixed(2);
+        }
+
+        tbody.querySelectorAll('.pr-item-row').forEach(bindRowEvents);
+
+        btnAdd.addEventListener('click', function () {
+            const firstRow = tbody.querySelector('.pr-item-row');
+            const newRow = firstRow.cloneNode(true);
+            newRow.querySelector('.product-select').selectedIndex = 0;
+            newRow.querySelector('.item-qty').value = '1';
+            newRow.querySelector('.item-cost').value = '0.00';
+            newRow.querySelector('.item-subtotal').textContent = '₹0.00';
+            tbody.appendChild(newRow);
+            bindRowEvents(newRow);
+            recalcAll();
+        });
+    });
+</script>
+
+</body>
+</html>
