@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head(${'Product Return ' + returnObj.returnNumber})}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('product-returns')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Supplier Return Debit Note')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3 no-print" data-aos="fade-down">
+                <div>
+                    <a th:href="@{/returns/products}" class="btn btn-outline-secondary btn-sm mb-2">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Product Returns
+                    </a>
+                    <h3 class="fw-bold mb-0" th:text="${'Supplier Debit Note #' + returnObj.returnNumber}">PR-2026</h3>
+                </div>
+                <div class="d-flex flex-wrap gap-2 w-100 w-sm-auto">
+                    <button type="button" class="btn btn-primary-gradient d-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto" onclick="window.print()">
+                        <i class="bi bi-printer"></i>
+                        <span>Print Supplier Debit Note</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="invoice-card" data-aos="zoom-in">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-start pb-4 mb-4 border-bottom flex-wrap gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 text-warning mb-1">
+                            <i class="bi bi-arrow-return-right fs-2"></i>
+                            <h4 class="fw-extrabold text-dark mb-0">Fresh<span class="text-success">Mart</span> Debit Note</h4>
+                        </div>
+                        <p class="text-muted small mb-0">Stock Returned to Wholesale Supplier / Inventory Deducted</p>
+                    </div>
+                    <div class="text-md-end">
+                        <span class="badge bg-warning-subtle text-dark border fs-6 font-monospace mb-1" th:text="${returnObj.returnNumber}">PR-2026-0001</span>
+                        <div class="text-muted small">Date: <strong class="text-dark" th:text="${#temporals.format(returnObj.returnDate, 'dd MMM yyyy, HH:mm')}">Date</strong></div>
+                        <div class="text-muted small">Processed By: <strong class="text-dark" th:text="${returnObj.processedBy}">Admin</strong></div>
+                    </div>
+                </div>
+
+                <!-- Supplier Info -->
+                <div class="p-3 mb-4 rounded-3 border bg-light">
+                    <div class="row g-2 text-sm">
+                        <div class="col-12 col-md-4">
+                            <span class="text-muted small d-block">Returned To Supplier:</span>
+                            <strong class="text-dark" th:text="${returnObj.supplier.name}">Supplier Name</strong>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <span class="text-muted small d-block">Contact Person:</span>
+                            <span class="text-dark" th:text="${returnObj.supplier.contactPerson}">Contact</span>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <span class="text-muted small d-block">Return Reason:</span>
+                            <span class="badge bg-light text-dark border" th:text="${returnObj.reason}">Reason</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-responsive mb-4">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light text-muted small text-uppercase">
+                            <tr>
+                                <th>#</th>
+                                <th>Product Details</th>
+                                <th>SKU / Barcode</th>
+                                <th class="text-center">Returned Qty</th>
+                                <th class="text-end">Unit Cost Rate (₹)</th>
+                                <th class="text-end">Debit Subtotal (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item, stat : ${returnObj.items}">
+                                <td class="text-muted small" th:text="${stat.count}">1</td>
+                                <td>
+                                    <strong class="text-dark" th:text="${item.product.name}">Product</strong>
+                                    <div class="text-muted small" th:text="${item.product.unit}">Unit</div>
+                                </td>
+                                <td>
+                                    <span class="font-monospace text-secondary small" th:text="${item.product.barcode}">SKU</span>
+                                </td>
+                                <td class="text-center fw-bold text-dark" th:text="${item.quantity + ' ' + item.product.unit}">1</td>
+                                <td class="text-end text-muted" th:text="${'₹' + #numbers.formatDecimal(item.unitCost, 1, 2)}">₹0.00</td>
+                                <td class="text-end fw-bold text-dark" th:text="${'₹' + #numbers.formatDecimal(item.subtotal, 1, 2)}">₹0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Total -->
+                <div class="row justify-content-end mb-4">
+                    <div class="col-12 col-md-5">
+                        <div class="p-3 border rounded-3 bg-light text-end">
+                            <span class="text-muted small d-block mb-1">Total Debit Note Amount Claimed</span>
+                            <h3 class="fw-extrabold text-warning mb-0" th:text="${'₹' + #numbers.formatDecimal(returnObj.totalRefundAmount, 1, 2)}">₹0.00</h3>
+                            <div class="text-muted small mt-1">To be adjusted against supplier's upcoming payables</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+
+</body>
+</html>

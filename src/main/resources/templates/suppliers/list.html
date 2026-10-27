@@ -11,12 +11,12 @@
         <div th:replace="~{layout/base :: alerts}"></div>
 
         <main class="page-container">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" data-aos="fade-down">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3" data-aos="fade-down">
                 <div>
                     <h3 class="fw-bold mb-1">Supplier Directory</h3>
                     <p class="text-muted mb-0">Manage wholesale vendors, farm distributors, and logistics partners</p>
                 </div>
-                <button type="button" class="btn btn-primary-gradient d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#supplierModal" onclick="resetSupplierForm()">
+                <button type="button" class="btn btn-primary-gradient d-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto" data-bs-toggle="modal" data-bs-target="#supplierModal" onclick="resetSupplierForm()">
                     <i class="bi bi-plus-lg"></i>
                     <span>Add Supplier</span>
                 </button>
@@ -110,9 +110,9 @@
                         <textarea name="address" id="modal-supplier-address" class="form-control" rows="2" placeholder="Street address, City, State..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary-gradient px-4">Save Supplier</button>
+                <div class="modal-footer bg-light d-flex flex-column flex-sm-row justify-content-end gap-2">
+                    <button type="button" class="btn btn-light w-100 w-sm-auto" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-gradient px-4 w-100 w-sm-auto">Save Supplier</button>
                 </div>
             </form>
         </div>

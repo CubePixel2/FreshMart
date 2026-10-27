@@ -11,12 +11,12 @@
         <div th:replace="~{layout/base :: alerts}"></div>
 
         <main class="page-container">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" data-aos="fade-down">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3" data-aos="fade-down">
                 <div>
                     <h3 class="fw-bold mb-1" th:text="${isNew ? 'Add New Product' : 'Edit Product'}">Product Form</h3>
                     <p class="text-muted mb-0">Fill in the product details, supplier info, and stock thresholds</p>
                 </div>
-                <a th:href="@{/products}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                <a th:href="@{/products}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto">
                     <i class="bi bi-arrow-left"></i>
                     <span>Back to Inventory</span>
                 </a>
@@ -24,7 +24,7 @@
 
             <div class="row justify-content-center" data-aos="fade-up">
                 <div class="col-12 col-lg-9">
-                    <div class="card-modern p-4 p-md-5">
+                    <div class="card-modern p-3 p-sm-4 p-md-5">
                         <form th:action="@{/products/save}" th:object="${product}" method="post">
                             <input type="hidden" th:field="*{id}" />
 
@@ -122,9 +122,9 @@
 
                             <hr class="my-4">
 
-                            <div class="d-flex justify-content-end gap-2">
-                                <a th:href="@{/products}" class="btn btn-light px-4">Cancel</a>
-                                <button type="submit" class="btn btn-primary-gradient px-5 fw-bold">
+                            <div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
+                                <a th:href="@{/products}" class="btn btn-light px-4 w-100 w-sm-auto text-center">Cancel</a>
+                                <button type="submit" class="btn btn-primary-gradient px-5 fw-bold w-100 w-sm-auto">
                                     <i class="bi bi-check-lg me-1"></i>Save Product
                                 </button>
                             </div>

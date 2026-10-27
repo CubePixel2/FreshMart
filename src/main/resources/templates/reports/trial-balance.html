@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Trial Balance')}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('report-tb')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Trial Balance')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container" id="tb-report-container">
+            <!-- Page Title & Actions -->
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3 no-print" data-aos="fade-down">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                        <h3 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                            <span class="text-primary d-inline-flex align-items-center justify-content-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+                            </span>
+                            <span>Trial Balance</span>
+                        </h3>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small">
+                            <span class="realtime-pulse-dot pulse-green me-1"></span>Live Real-Time
+                        </span>
+                    </div>
+                    <p class="text-muted mb-0">Double-entry ledger verification across Assets, Liabilities, Equity, Revenue, and Expenses</p>
+                </div>
+                <div class="d-flex flex-wrap gap-2 w-100 w-sm-auto">
+                    <button type="button" onclick="window.print()" class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0">
+                        <i class="bi bi-printer"></i>
+                        <span>Print Statement</span>
+                    </button>
+                    <a th:href="@{/reports/profit-loss(startDate=${startDate}, endDate=${endDate})}" class="btn btn-outline-success d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        <span>View Profit &amp; Loss</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Date Range Filter Card -->
+            <div class="card-modern p-4 mb-4 no-print" data-aos="fade-up">
+                <form th:action="@{/reports/trial-balance}" method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label small fw-semibold text-muted mb-1">From Date</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-calendar-event"></i></span>
+                            <input type="date" name="startDate" th:value="${startDate}" class="form-control border-start-0" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label small fw-semibold text-muted mb-1">To Date</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-calendar-check"></i></span>
+                            <input type="date" name="endDate" th:value="${endDate}" class="form-control border-start-0" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary-gradient flex-grow-1 d-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-funnel"></i>
+                            <span>Filter Period</span>
+                        </button>
+                        <a th:href="@{/reports/trial-balance}" class="btn btn-light border px-3" title="Reset to current month">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Statement Card -->
+            <div class="card-modern p-4 p-md-5 mb-5 shadow-sm" data-aos="fade-up" data-aos-delay="100">
+                <!-- Company Header for Print/Display -->
+                <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4 flex-wrap gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-cart4 text-success fs-3"></i>
+                            <h3 class="fw-bold mb-0">FreshMart Supermarket</h3>
+                        </div>
+                        <div class="text-muted small">MG Road, Ernakulam, Kochi, Kerala 682016</div>
+                        <div class="text-muted small">GSTIN: 32AABCF1234F1Z8 | Contact: +91 484 2345678</div>
+                    </div>
+                    <div class="text-md-end">
+                        <div class="d-flex align-items-center justify-content-md-end gap-2 mb-2">
+                            <span class="badge bg-dark px-3 py-2 text-uppercase">Trial Balance Sheet</span>
+                            <span th:if="${report.balanced}" class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5" id="tb-balance-badge">
+                                <i class="bi bi-check-circle-fill me-1"></i>Balanced
+                            </span>
+                            <span th:unless="${report.balanced}" class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1.5" id="tb-balance-badge">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>Unbalanced
+                            </span>
+                        </div>
+                        <div class="fw-bold text-dark">
+                            As of:
+                            <span th:text="${#temporals.format(endDate, 'dd MMM yyyy')}">30 Sep 2026</span>
+                        </div>
+                        <div class="text-muted small">Accounting Range: <span th:text="${#temporals.format(startDate, 'dd MMM yyyy')}">01 Sep</span> to <span th:text="${#temporals.format(endDate, 'dd MMM yyyy')}">30 Sep 2026</span></div>
+                    </div>
+                </div>
+
+                <!-- Ledger Table -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle mb-0">
+                        <thead class="table-light text-uppercase small text-muted">
+                            <tr>
+                                <th style="width: 15%;">Account Code</th>
+                                <th style="width: 45%;">Account Title &amp; Description</th>
+                                <th style="width: 16%;">Classification</th>
+                                <th class="text-end" style="width: 12%;">Debit (₹)</th>
+                                <th class="text-end" style="width: 12%;">Credit (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-ledger-tbody">
+                            <tr th:each="acc : ${report.accounts}">
+                                <td>
+                                    <span class="badge bg-light text-dark font-monospace border" th:text="${acc.code}">1010</span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark" th:text="${acc.accountName}">Cash &amp; Bank Balance</div>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill"
+                                          th:classappend="${acc.category == 'Asset' ? 'bg-primary-subtle text-primary' :
+                                                           (acc.category == 'Liability' ? 'bg-danger-subtle text-danger' :
+                                                           (acc.category == 'Revenue' ? 'bg-success-subtle text-success' :
+                                                           (acc.category == 'Expense' ? 'bg-warning-subtle text-warning' : 'bg-secondary-subtle text-secondary')))}"
+                                          th:text="${acc.category}">Asset</span>
+                                </td>
+                                <td class="text-end font-monospace">
+                                    <span th:if="${acc.debit.compareTo(T(java.math.BigDecimal).ZERO) > 0}"
+                                          class="fw-semibold text-dark"
+                                          th:text="${#numbers.formatDecimal(acc.debit, 1, 2)}">0.00</span>
+                                    <span th:unless="${acc.debit.compareTo(T(java.math.BigDecimal).ZERO) > 0}" class="text-muted">-</span>
+                                </td>
+                                <td class="text-end font-monospace">
+                                    <span th:if="${acc.credit.compareTo(T(java.math.BigDecimal).ZERO) > 0}"
+                                          class="fw-semibold text-dark"
+                                          th:text="${#numbers.formatDecimal(acc.credit, 1, 2)}">0.00</span>
+                                    <span th:unless="${acc.credit.compareTo(T(java.math.BigDecimal).ZERO) > 0}" class="text-muted">-</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="table-dark">
+                            <tr class="fw-bold fs-6">
+                                <td colspan="3" class="text-uppercase py-3">Total Trial Balance</td>
+                                <td class="text-end font-monospace text-success py-3">
+                                    ₹<span id="tb-total-debit" th:text="${#numbers.formatDecimal(report.totalDebit, 1, 2)}">0.00</span>
+                                </td>
+                                <td class="text-end font-monospace text-success py-3">
+                                    ₹<span id="tb-total-credit" th:text="${#numbers.formatDecimal(report.totalCredit, 1, 2)}">0.00</span>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Balance Status Notice -->
+                <div class="mt-4 p-3 rounded-3"
+                     th:classappend="${report.balanced ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle'}">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi" th:classappend="${report.balanced ? 'bi-check-circle-fill fs-5' : 'bi-exclamation-triangle-fill fs-5'}"></i>
+                        <div>
+                            <strong th:if="${report.balanced}">Trial Balance is in Equilibrium:</strong>
+                            <strong th:unless="${report.balanced}">Trial Balance Discrepancy Detected:</strong>
+                            <span th:if="${report.balanced}">Total debit balances equal total credit balances (₹<span th:text="${#numbers.formatDecimal(report.totalDebit, 1, 2)}">0.00</span>). All general ledger accounts reconcile.</span>
+                            <span th:unless="${report.balanced}">Total Debits (₹<span th:text="${#numbers.formatDecimal(report.totalDebit, 1, 2)}">0.00</span>) do not equal Total Credits (₹<span th:text="${#numbers.formatDecimal(report.totalCredit, 1, 2)}">0.00</span>).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signatures / Footer for Print -->
+                <div class="d-flex justify-content-between align-items-end mt-5 pt-4 border-top">
+                    <div class="text-muted small">
+                        <div>Verified by: <strong sec:authentication="name">Admin</strong> | FreshMart Kerala Store Account</div>
+                        <div>Generated On: <span th:text="${#temporals.format(#temporals.createNow(), 'dd MMM yyyy, hh:mm a')}">Date</span></div>
+                    </div>
+                    <div class="text-center" style="min-width: 200px;">
+                        <div class="border-bottom border-dark pb-3 mb-1"></div>
+                        <div class="fw-bold small text-uppercase">Head of Accounting / Auditor</div>
+                        <div class="text-muted small">FreshMart Financial Controls</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+</body>
+</html>

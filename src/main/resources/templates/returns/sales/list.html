@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Sale Returns')}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('sale-returns')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Sale Returns (Customer Returns)')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3" data-aos="fade-down">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                        <h3 class="fw-bold mb-0">
+                            <i class="bi bi-arrow-return-left text-info me-2"></i>Sale Returns (Customer)
+                        </h3>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small">
+                            <span class="realtime-pulse-dot pulse-green me-1"></span>Live Real-Time
+                        </span>
+                    </div>
+                    <p class="text-muted mb-0">Record customer returned items, issue refunds, and restore product stock</p>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-sm-auto">
+                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-2 small" id="sale-returns-count-badge" th:text="${#lists.size(returns) + ' Total Returns'}">0 Total Returns</span>
+                    <a th:href="@{/returns/sales/new}" class="btn btn-primary-gradient d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0">
+                        <i class="bi bi-plus-lg"></i>
+                        <span>Process Sale Return</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-modern overflow-hidden" data-aos="fade-up">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="sale-returns-table">
+                        <thead class="table-light text-muted small text-uppercase">
+                            <tr>
+                                <th>Return #</th>
+                                <th>Return Date</th>
+                                <th>Original Invoice</th>
+                                <th>Customer</th>
+                                <th>Returned Qty</th>
+                                <th>Refund Amount (₹)</th>
+                                <th>Reason</th>
+                                <th>Processed By</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sale-returns-tbody">
+                            <tr th:each="ret : ${returns}">
+                                <td>
+                                    <a th:href="@{'/returns/sales/' + ${ret.id}}" class="fw-bold text-info font-monospace text-decoration-none" th:text="${ret.returnNumber}">SR-2026-0001</a>
+                                </td>
+                                <td>
+                                    <span class="text-dark fw-medium" th:text="${#temporals.format(ret.returnDate, 'dd MMM yyyy, HH:mm')}">Date</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{'/sales/' + ${ret.originalSale.id}}" class="fw-bold text-primary font-monospace" th:text="${ret.originalSale.invoiceNumber}">INV-1</a>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark" th:text="${ret.originalSale.customerName}">Customer</div>
+                                    <div class="text-muted small" th:text="${ret.originalSale.customerPhone}">Phone</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-1" th:text="${ret.totalReturnedQty + ' items'}">0 items</span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-danger fs-6" th:text="${'₹' + #numbers.formatDecimal(ret.refundAmount, 1, 2)}">₹0.00</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted small text-truncate d-inline-block" style="max-width: 180px;" th:text="${ret.reason}">Reason</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border" th:text="${ret.processedBy}">Cashier</span>
+                                </td>
+                                <td class="text-end">
+                                    <a th:href="@{'/returns/sales/' + ${ret.id}}" class="btn btn-sm btn-light text-primary rounded-circle p-1" title="View Detail">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(returns)}">
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    <i class="bi bi-arrow-return-left fs-1 mb-2 d-block opacity-50"></i>
+                                    No customer sale returns recorded yet.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+
+</body>
+</html>

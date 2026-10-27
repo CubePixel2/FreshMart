@@ -29,8 +29,9 @@
             <i class="bi bi-cart4"></i>
             <span>Fresh<span class="text-success">Mart</span></span>
         </a>
-        <button type="button" class="btn btn-sm btn-outline-light border-0 text-secondary p-1 ms-auto sidebar-close-trigger" id="sidebar-collapse-btn" title="Minimise Sidebar">
-            <i class="bi bi-chevron-left fs-5"></i>
+        <button type="button" class="btn btn-sm btn-outline-light border-0 text-secondary p-1 ms-auto sidebar-close-trigger" id="sidebar-collapse-btn" title="Minimise / Close Sidebar">
+            <i class="bi bi-x-lg fs-5 d-lg-none"></i>
+            <i class="bi bi-chevron-left fs-5 d-none d-lg-inline"></i>
         </button>
     </div>
 
@@ -76,11 +77,83 @@
             </a>
         </li>
 
-        <li class="nav-heading mt-3">Sales &amp; Reports</li>
+        <li class="nav-heading mt-3">Purchases</li>
+        <li class="nav-item">
+            <a th:href="@{/purchases/orders}" class="nav-link" th:classappend="${activeNav == 'purchase-orders' ? 'active' : ''}" title="Purchase Orders">
+                <i class="bi bi-file-earmark-text-fill"></i>
+                <span>Purchase Orders</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a th:href="@{/purchases/invoices}" class="nav-link" th:classappend="${activeNav == 'purchase-invoices' ? 'active' : ''}" title="Purchase Invoices">
+                <i class="bi bi-receipt-cutoff"></i>
+                <span>Purchase Invoices</span>
+            </a>
+        </li>
+
+        <li class="nav-heading mt-3">Returns</li>
+        <li class="nav-item">
+            <a th:href="@{/returns/sales}" class="nav-link" th:classappend="${activeNav == 'sale-returns' ? 'active' : ''}" title="Sale Returns">
+                <i class="bi bi-arrow-return-left text-info"></i>
+                <span>Sale Returns</span>
+                <span class="badge bg-info-subtle text-info rounded-pill ms-auto small d-none" id="sidebar-sale-returns-badge">0 today</span>
+            </a>
+        </li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/returns/products}" class="nav-link" th:classappend="${activeNav == 'product-returns' ? 'active' : ''}" title="Product Returns to Suppliers">
+                <i class="bi bi-arrow-return-right text-warning"></i>
+                <span>Product Returns</span>
+                <span class="badge bg-warning-subtle text-dark rounded-pill ms-auto small d-none" id="sidebar-product-returns-badge">0 today</span>
+            </a>
+        </li>
+
+        <li class="nav-heading mt-3">Sales &amp; Billing</li>
         <li class="nav-item">
             <a th:href="@{/sales}" class="nav-link" th:classappend="${activeNav == 'sales' ? 'active' : ''}" title="Sales History">
                 <i class="bi bi-receipt"></i>
                 <span>Sales History</span>
+            </a>
+        </li>
+
+        <li class="nav-heading mt-3" sec:authorize="hasRole('ADMIN')">Reports &amp; Financials</li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/reports/profit-loss}" class="nav-link" th:classappend="${activeNav == 'report-pl' ? 'active' : ''}" title="Profit and Loss">
+                <i class="bi bi-graph-up-arrow text-success"></i>
+                <span>Profit &amp; Loss</span>
+            </a>
+        </li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/reports/trial-balance}" class="nav-link" th:classappend="${activeNav == 'report-tb' ? 'active' : ''}" title="Trial Balance">
+                <i class="bi text-primary d-inline-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+                </i>
+                <span>Trial Balance</span>
+            </a>
+        </li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/reports/sale-returns}" class="nav-link" th:classappend="${activeNav == 'report-sr' ? 'active' : ''}" title="Sale Return Report">
+                <i class="bi bi-arrow-repeat text-info"></i>
+                <span>Sale Return Report</span>
+            </a>
+        </li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/reports/product-returns}" class="nav-link" th:classappend="${activeNav == 'report-pr' ? 'active' : ''}" title="Product Return Report">
+                <i class="bi bi-truck-flatbed text-warning"></i>
+                <span>Product Return Report</span>
+            </a>
+        </li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/reports/gst-return}" class="nav-link" th:classappend="${activeNav == 'report-gst' ? 'active' : ''}" title="VAT / GST Return">
+                <i class="bi bi-calculator text-danger"></i>
+                <span>VAT / GST Return</span>
+            </a>
+        </li>
+
+        <li class="nav-heading mt-3" sec:authorize="hasRole('ADMIN')">Administration</li>
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/settings/payment-gateways}" class="nav-link" th:classappend="${activeNav == 'payment-gateways' ? 'active' : ''}" title="Payment Gateways">
+                <i class="bi bi-credit-card-2-front-fill"></i>
+                <span>Payment Gateways</span>
             </a>
         </li>
     </ul>
@@ -107,30 +180,35 @@
 <!-- Fragment: Top Navbar -->
 <header class="top-navbar" th:fragment="navbar(pageTitle)">
     <div class="d-flex align-items-center gap-2">
-        <button class="btn btn-light p-2 rounded-circle me-1" id="sidebar-toggle" type="button" title="Minimise / Toggle Menu">
+        <button class="btn btn-light rounded-circle me-1" id="sidebar-toggle" type="button" title="Minimise / Toggle Menu">
             <i class="bi bi-list fs-5"></i>
         </button>
         <h5 class="mb-0 fw-bold text-dark d-none d-sm-block" th:text="${pageTitle}">Dashboard</h5>
     </div>
 
-    <div class="d-flex align-items-center gap-3">
-        <!-- Quick POS launch button -->
-        <a th:href="@{/pos}" class="btn btn-sm btn-primary-gradient d-flex align-items-center gap-2">
-            <i class="bi bi-plus-circle-fill"></i>
-            <span class="d-none d-md-inline">New Sale</span>
-        </a>
+    <div class="d-flex align-items-center gap-2 gap-sm-3">
+        <!-- Real-Time Live Sync Status Pill -->
+        <div class="d-none d-md-flex align-items-center realtime-status-pill" id="realtime-status-pill" title="Live sync active across reports, returns & POS">
+            <span class="realtime-pulse-dot pulse-green"></span>
+            <span class="realtime-status-text" id="realtime-status-text">Live Sync</span>
+            <span class="realtime-status-divider"></span>
+            <span class="realtime-last-sync" id="realtime-last-sync">Just now</span>
+            <button type="button" class="realtime-sync-btn" id="btn-realtime-manual-sync" title="Sync Reports & Returns Now">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+        </div>
 
         <!-- Low stock alert bell -->
-        <a th:href="@{/products/low-stock}" class="btn btn-light rounded-circle position-relative p-2" title="Stock Alerts">
+        <a th:href="@{/products/low-stock}" class="btn btn-light rounded-circle position-relative btn-stock-alert" title="Stock Alerts">
             <i class="bi bi-bell-fill text-secondary"></i>
         </a>
 
         <!-- User profile badge -->
         <div class="dropdown">
-            <button class="btn btn-light rounded-pill px-3 py-1 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+            <button class="btn btn-light rounded-pill px-2.5 d-flex align-items-center gap-1.5 user-profile-btn" type="button" data-bs-toggle="dropdown">
                 <span class="badge bg-success-subtle text-success rounded-pill fw-semibold" sec:authorize="hasRole('ADMIN')">ADMIN</span>
                 <span class="badge bg-info-subtle text-primary rounded-pill fw-semibold" sec:authorize="!hasRole('ADMIN')">STAFF</span>
-                <span class="fw-semibold text-dark small" sec:authentication="name">User</span>
+                <span class="fw-semibold text-dark small text-truncate d-none d-sm-inline" style="max-width: 100px;" sec:authentication="name">User</span>
                 <i class="bi bi-chevron-down text-muted small"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
@@ -149,7 +227,7 @@
 </header>
 
 <!-- Fragment: Alert Messages -->
-<div class="px-4 pt-3" th:fragment="alerts" th:if="${successMessage != null or errorMessage != null}">
+<div class="px-3 px-md-4 pt-3" th:fragment="alerts" th:if="${successMessage != null or errorMessage != null}">
     <div class="alert alert-success alert-dismissible fade show alert-modern" th:if="${successMessage != null}">
         <i class="bi bi-check-circle-fill text-success fs-5"></i>
         <div class="flex-grow-1 fw-medium" th:text="${successMessage}">Operation completed!</div>
@@ -163,8 +241,8 @@
 </div>
 
 <!-- Fragment: Footer -->
-<footer class="py-3 px-4 text-center text-muted small border-top bg-white no-print" th:fragment="footer">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+<footer class="py-3 px-3 px-md-4 text-center text-muted small border-top bg-white no-print" th:fragment="footer">
+    <div class="d-flex justify-content-between align-items-center flex-column flex-sm-row gap-2 text-center text-sm-start">
         <div>&copy; 2026 <strong>FreshMart Supermarket</strong> &bull; Kochi, Kerala, India &bull; GSTIN: 32AABCF9876K1Z9</div>
         <div class="text-secondary">Grocery Store Inventory &amp; POS Billing &bull; Kerala Retail Edition</div>
     </div>
@@ -177,6 +255,7 @@
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script th:src="@{/js/app.js}"></script>
+    <script th:src="@{/js/realtime-sync.js}"></script>
 </div>
 
 </body>

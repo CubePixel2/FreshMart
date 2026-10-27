@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout/base :: head('Purchase Invoices')}"></head>
+<body>
+
+<div id="app-wrapper">
+    <aside th:replace="~{layout/base :: sidebar('purchase-invoices')}"></aside>
+
+    <div id="main-content">
+        <header th:replace="~{layout/base :: navbar('Purchase Invoices')}"></header>
+        <div th:replace="~{layout/base :: alerts}"></div>
+
+        <main class="page-container">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3" data-aos="fade-down">
+                <div>
+                    <h3 class="fw-bold mb-1">
+                        <i class="bi bi-receipt-cutoff text-success me-2"></i>Purchase Invoices
+                    </h3>
+                    <p class="text-muted mb-0">Record and post inward stock received from suppliers</p>
+                </div>
+                <div class="d-flex flex-wrap gap-2 w-100 w-sm-auto">
+                    <a th:href="@{/purchases/orders/new}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>New PO</span>
+                    </a>
+                    <a th:href="@{/purchases/invoices/new}" class="btn btn-primary-gradient d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0">
+                        <i class="bi bi-plus-lg"></i>
+                        <span>New Purchase Invoice</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-modern overflow-hidden" data-aos="fade-up">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small text-uppercase">
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Date</th>
+                                <th>Supplier</th>
+                                <th>Linked PO</th>
+                                <th>Subtotal (₹)</th>
+                                <th>Tax (₹)</th>
+                                <th>Grand Total (₹)</th>
+                                <th>Inventory Status</th>
+                                <th>Payment</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="inv : ${invoices}">
+                                <td>
+                                    <a th:href="@{'/purchases/invoices/' + ${inv.id}}" class="fw-bold text-primary font-monospace text-decoration-none" th:text="${inv.invoiceNumber}">PINV-2026-0001</a>
+                                </td>
+                                <td>
+                                    <span class="text-dark fw-medium" th:text="${#temporals.format(inv.invoiceDate, 'dd MMM yyyy')}">Date</span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark" th:text="${inv.supplier.name}">Supplier Name</div>
+                                    <div class="text-muted small" th:text="${inv.supplier.contactPerson}">Contact</div>
+                                </td>
+                                <td>
+                                    <a th:if="${inv.purchaseOrder != null}" th:href="@{'/purchases/orders/' + ${inv.purchaseOrder.id}}" class="badge bg-light text-primary border text-decoration-none" th:text="${inv.purchaseOrder.poNumber}">PO-1</a>
+                                    <span th:if="${inv.purchaseOrder == null}" class="text-muted small">Direct</span>
+                                </td>
+                                <td class="text-muted" th:text="${'₹' + #numbers.formatDecimal(inv.totalAmount, 1, 2)}">₹0.00</td>
+                                <td class="text-muted" th:text="${'₹' + #numbers.formatDecimal(inv.taxAmount, 1, 2)}">₹0.00</td>
+                                <td>
+                                    <span class="fw-bold text-success fs-6" th:text="${'₹' + #numbers.formatDecimal(inv.grandTotal, 1, 2)}">₹0.00</span>
+                                </td>
+                                <td>
+                                    <span th:if="${inv.posted}" class="badge bg-success-subtle text-success border border-success-subtle">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Stock Posted
+                                    </span>
+                                    <span th:if="${!inv.posted}" class="badge bg-warning-subtle text-dark border border-warning-subtle">
+                                        <i class="bi bi-clock-history me-1"></i>Pending Post
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="${inv.paymentStatus.badgeClass}" th:text="${inv.paymentStatus.displayName}">Unpaid</span>
+                                </td>
+                                <td class="text-end">
+                                    <a th:href="@{'/purchases/invoices/' + ${inv.id}}" class="btn btn-sm btn-light text-primary rounded-circle p-1" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(invoices)}">
+                                <td colspan="10" class="text-center py-5 text-muted">
+                                    <i class="bi bi-receipt-cutoff fs-1 mb-2 d-block opacity-50"></i>
+                                    No purchase invoices recorded yet.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="~{layout/base :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+
+</body>
+</html>

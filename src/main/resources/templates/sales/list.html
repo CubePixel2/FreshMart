@@ -11,12 +11,12 @@
         <div th:replace="~{layout/base :: alerts}"></div>
 
         <main class="page-container">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" data-aos="fade-down">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3" data-aos="fade-down">
                 <div>
                     <h3 class="fw-bold mb-1">Sales &amp; Invoices</h3>
                     <p class="text-muted mb-0">Track all completed retail transactions and customer bills</p>
                 </div>
-                <a th:href="@{/pos}" class="btn btn-primary-gradient d-flex align-items-center gap-2">
+                <a th:href="@{/pos}" class="btn btn-primary-gradient d-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto">
                     <i class="bi bi-cart-plus-fill"></i>
                     <span>New POS Sale</span>
                 </a>
@@ -55,10 +55,15 @@
                                     <span class="badge bg-light text-dark border" th:text="${sale.cashierName}">Cashier</span>
                                 </td>
                                 <td>
-                                    <span class="badge" th:classappend="${sale.paymentMethod.name() == 'CASH' ? 'badge-soft-success' : (sale.paymentMethod.name() == 'CARD' ? 'badge-soft-primary' : 'badge-soft-warning')}">
-                                        <i th:class="${'bi ' + sale.paymentMethod.iconClass + ' me-1'}"></i>
-                                        <span th:text="${sale.paymentMethod.displayName}">Cash</span>
-                                    </span>
+                                    <div>
+                                        <span class="badge" th:classappend="${sale.paymentMethod.name() == 'CASH' ? 'badge-soft-success' : (sale.paymentMethod.name() == 'RAZORPAY' ? 'badge-soft-primary' : (sale.paymentMethod.name() == 'STRIPE' ? 'badge-soft-primary' : 'badge-soft-warning'))}">
+                                            <i th:class="${'bi ' + sale.paymentMethod.iconClass + ' me-1'}"></i>
+                                            <span th:text="${sale.paymentMethod.displayName}">Method</span>
+                                        </span>
+                                    </div>
+                                    <div class="small text-muted font-monospace mt-1" th:if="${sale.transactionId}" style="font-size: 0.72rem;">
+                                        <i class="bi bi-hash"></i><span th:text="${sale.transactionId}">TXN</span>
+                                    </div>
                                 </td>
                                 <td>
                                     <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1" th:text="${sale.totalItemCount + ' units'}">0 units</span>
@@ -67,8 +72,8 @@
                                 <td>
                                     <span class="fw-bold text-success fs-6" th:text="${'₹' + #numbers.formatDecimal(sale.grandTotal, 1, 2)}">₹0.00</span>
                                 </td>
-                                <td class="text-end">
-                                    <div class="d-flex justify-content-end gap-1">
+                                <td class="text-end" style="min-width: 90px;">
+                                    <div class="d-flex justify-content-end gap-1 flex-nowrap">
                                         <a th:href="@{'/sales/' + ${sale.id}}" class="btn btn-sm btn-light text-primary rounded-circle p-1" title="View Details">
                                             <i class="bi bi-eye"></i>
                                         </a>

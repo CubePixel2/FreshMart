@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{layout/base :: head('POS Terminal')}"></head>
-<body>
+<body class="pos-terminal-body">
 
 <div id="app-wrapper">
     <!-- Sidebar Navigation -->
@@ -16,12 +16,12 @@
         <div th:replace="~{layout/base :: alerts}"></div>
 
         <!-- Page Main Content -->
-        <main class="page-container">
+        <main class="page-container pos-page-container">
             <div class="pos-container">
                 <!-- Products Left Panel -->
                 <div class="pos-products-panel">
                     <!-- Search & Barcode Top Bar -->
-                    <div class="row g-2 mb-3">
+                    <div class="row g-2 mb-2.5">
                         <div class="col-12 col-md-7">
                             <div class="input-group">
                                 <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
@@ -55,19 +55,26 @@
                              class="pos-product-card"
                              th:classappend="${product.isOutOfStock() ? 'out-of-stock' : ''}"
                              th:attr="data-id=${product.id}, data-name=${product.name}, data-barcode=${product.barcode}, data-price=${product.sellingPrice}, data-stock=${product.stockQuantity}, data-unit=${product.unit}, data-category=${product.category != null ? product.category.id : ''}">
-                            <div>
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <span class="badge bg-light text-secondary border small" th:text="${product.category != null ? product.category.name : 'General'}">Category</span>
-                                    <span th:if="${product.isOutOfStock()}" class="badge bg-danger product-stock-badge">Out of Stock</span>
-                                    <span th:if="${product.isLowStock()}" class="badge bg-warning text-dark product-stock-badge animate-pulse-danger" th:text="${product.stockQuantity + ' ' + product.unit}">Low</span>
-                                    <span th:if="${!product.isOutOfStock() and !product.isLowStock()}" class="badge bg-success-subtle text-success product-stock-badge" th:text="${product.stockQuantity + ' ' + product.unit}">In Stock</span>
+                            
+                            <div class="pos-card-content">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5 gap-1">
+                                    <span class="badge bg-light text-secondary border small text-truncate"
+                                          style="max-width: 95px; font-size: 0.68rem; font-weight: 600;"
+                                          th:title="${product.category != null ? product.category.name : 'General'}"
+                                          th:text="${product.category != null ? product.category.name : 'General'}">Category</span>
+                                    
+                                    <span th:if="${product.isOutOfStock()}" class="badge bg-danger product-stock-badge flex-shrink-0" style="font-size: 0.68rem;">Out of Stock</span>
+                                    <span th:if="${product.isLowStock()}" class="badge bg-warning text-dark product-stock-badge flex-shrink-0 animate-pulse-danger fw-bold" style="font-size: 0.68rem;" th:text="${product.stockQuantity + ' ' + product.unit}">Low</span>
+                                    <span th:if="${!product.isOutOfStock() and !product.isLowStock()}" class="badge bg-success-subtle text-success product-stock-badge flex-shrink-0 fw-semibold" style="font-size: 0.68rem;" th:text="${product.stockQuantity + ' ' + product.unit}">In Stock</span>
                                 </div>
-                                <h6 class="fw-bold mb-1 text-dark" style="font-size: 0.95rem; line-height: 1.3;" th:text="${product.name}">Product Name</h6>
-                                <div class="text-muted small" style="font-size: 0.75rem;" th:text="${'SKU: ' + product.barcode}">SKU</div>
+
+                                <h6 class="pos-card-title fw-bold text-dark mb-1" th:title="${product.name}" th:text="${product.name}">Product Name</h6>
+                                <div class="text-muted small pos-card-sku">SKU: <span th:text="${product.barcode}">89010001</span></div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                                <div class="item-price" th:text="${'₹' + #numbers.formatDecimal(product.sellingPrice, 1, 2)}">₹0.00</div>
-                                <button class="btn btn-sm btn-light text-success rounded-circle p-1" title="Add to cart">
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto pos-card-bottom">
+                                <div class="item-price fw-extrabold text-success" th:text="${'₹' + #numbers.formatDecimal(product.sellingPrice, 1, 2)}">₹0.00</div>
+                                <button class="btn btn-sm btn-light text-success rounded-circle p-1 pos-add-btn" title="Add to cart" type="button">
                                     <i class="bi bi-plus-lg fs-6"></i>
                                 </button>
                             </div>
@@ -124,75 +131,330 @@
             </div>
         </main>
 
-        <!-- Footer -->
-        <footer th:replace="~{layout/base :: footer}"></footer>
+        <!-- Footer (Hidden on POS terminal so full screen is dedicated to billing) -->
+        <footer th:replace="~{layout/base :: footer}" class="d-none d-lg-none"></footer>
     </div>
 </div>
 
 <!-- Checkout Modal -->
 <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header bg-light py-3">
-                <h5 class="modal-title fw-bold" id="checkoutModalLabel">
-                    <i class="bi bi-wallet2 text-success me-2"></i>Complete Payment
-                </h5>
+            <div class="modal-header bg-light py-3 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-success text-white p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-wallet2 fs-6"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-0" id="checkoutModalLabel">Payment &amp; Billing Terminal</h5>
+                        <span class="text-muted small">Select gateway, collect payment &amp; issue invoice</span>
+                    </div>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4">
-                <div class="text-center py-2 mb-3 bg-light rounded-3">
-                    <span class="text-muted small text-uppercase fw-semibold">Amount Payable</span>
-                    <h2 class="fw-extrabold text-success mb-0" id="modal-payable-amount">₹0.00</h2>
-                </div>
 
-                <div class="mb-3">
-                    <label for="modal-payment-method" class="form-label fw-semibold small text-secondary">Payment Method</label>
-                    <select class="form-select" id="modal-payment-method">
-                        <option value="UPI" selected>📱 UPI (GPay / PhonePe / Paytm / QR)</option>
-                        <option value="CASH">💵 Cash (INR)</option>
-                        <option value="CARD">💳 Debit / Credit Card</option>
-                    </select>
-                </div>
-
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label for="modal-tendered-amount" class="form-label fw-semibold small text-secondary">Cash Tendered (₹)</label>
-                        <input type="number" class="form-control" id="modal-tendered-amount" placeholder="0.00" step="10">
+            <div class="modal-body p-3 p-sm-4">
+                <!-- Amount Banner -->
+                <div class="d-flex justify-content-between align-items-center p-3 mb-4 bg-light rounded-3 border">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-semibold d-block">Amount Payable</span>
+                        <div class="text-secondary small">Inclusive of 5% Kerala GST (CGST + SGST)</div>
                     </div>
-                    <div class="col-6">
-                        <label class="form-label fw-semibold small text-secondary">Change Due</label>
-                        <div class="form-control bg-light fw-bold text-primary" id="modal-change-amount">₹0.00</div>
+                    <div class="text-end">
+                        <h2 class="fw-extrabold text-success mb-0" id="modal-payable-amount">₹0.00</h2>
                     </div>
                 </div>
 
-                <!-- Cashier Name (Required) -->
+                <!-- Payment Gateways Tab Selector -->
                 <div class="mb-3">
-                    <label for="modal-cashier-name" class="form-label fw-semibold small text-secondary">
-                        <i class="bi bi-person-badge text-primary me-1"></i>Cashier Name <span class="text-danger">*</span>
+                    <label class="form-label fw-bold small text-secondary text-uppercase mb-2">
+                        <i class="bi bi-credit-card-2-front-fill text-success me-1"></i>Select Payment Gateway / Method
                     </label>
-                    <input type="text" class="form-control fw-medium" id="modal-cashier-name" placeholder="Enter Cashier Name (e.g. Arun, Counter 1)" required>
-                    <div class="invalid-feedback">Please enter the Cashier Name before completing the bill!</div>
+                    <div class="row g-2" id="payment-gateway-selector">
+                        <div class="col-6 col-sm-4 col-md-2">
+                            <input type="radio" class="btn-check" name="paymentGatewayOption" id="gateway-upi-qr" value="UPI_QR" checked autocomplete="off">
+                            <label class="btn btn-outline-success w-100 p-2 d-flex flex-column align-items-center text-center rounded-3 h-100 justify-content-center" for="gateway-upi-qr">
+                                <i class="bi bi-qr-code-scan fs-4 mb-1"></i>
+                                <span class="fw-bold small">Dynamic UPI QR</span>
+                                <span class="text-muted" style="font-size: 0.68rem;">PhonePe/GPay</span>
+                            </label>
+                        </div>
+                        <div class="col-6 col-sm-4 col-md-2">
+                            <input type="radio" class="btn-check" name="paymentGatewayOption" id="gateway-razorpay" value="RAZORPAY" autocomplete="off">
+                            <label class="btn btn-outline-primary w-100 p-2 d-flex flex-column align-items-center text-center rounded-3 h-100 justify-content-center" for="gateway-razorpay">
+                                <i class="bi bi-shield-check fs-4 mb-1"></i>
+                                <span class="fw-bold small">Razorpay</span>
+                                <span class="text-muted" style="font-size: 0.68rem;">Cards / NetBank / UPI</span>
+                            </label>
+                        </div>
+                        <div class="col-6 col-sm-4 col-md-2">
+                            <input type="radio" class="btn-check" name="paymentGatewayOption" id="gateway-stripe" value="STRIPE" autocomplete="off">
+                            <label class="btn btn-outline-info w-100 p-2 d-flex flex-column align-items-center text-center rounded-3 h-100 justify-content-center" for="gateway-stripe">
+                                <i class="bi bi-credit-card-2-front fs-4 mb-1"></i>
+                                <span class="fw-bold small">Stripe Cards</span>
+                                <span class="text-muted" style="font-size: 0.68rem;">Debit &amp; Credit</span>
+                            </label>
+                        </div>
+                        <div class="col-6 col-sm-4 col-md-2">
+                            <input type="radio" class="btn-check" name="paymentGatewayOption" id="gateway-card-pos" value="CARD_POS" autocomplete="off">
+                            <label class="btn btn-outline-warning w-100 p-2 d-flex flex-column align-items-center text-center rounded-3 h-100 justify-content-center" for="gateway-card-pos">
+                                <i class="bi bi-credit-card fs-4 mb-1"></i>
+                                <span class="fw-bold small">Card Terminal</span>
+                                <span class="text-muted" style="font-size: 0.68rem;">EDC Swipe/Tap</span>
+                            </label>
+                        </div>
+                        <div class="col-6 col-sm-4 col-md-2">
+                            <input type="radio" class="btn-check" name="paymentGatewayOption" id="gateway-online" value="ONLINE" autocomplete="off">
+                            <label class="btn btn-outline-primary w-100 p-2 d-flex flex-column align-items-center text-center rounded-3 h-100 justify-content-center" for="gateway-online">
+                                <i class="bi bi-globe2 fs-4 mb-1"></i>
+                                <span class="fw-bold small">Online PG</span>
+                                <span class="text-muted" style="font-size: 0.68rem;">Mock / Gateway</span>
+                            </label>
+                        </div>
+                        <div class="col-6 col-sm-4 col-md-2">
+                            <input type="radio" class="btn-check" name="paymentGatewayOption" id="gateway-cash" value="CASH" autocomplete="off">
+                            <label class="btn btn-outline-secondary w-100 p-2 d-flex flex-column align-items-center text-center rounded-3 h-100 justify-content-center" for="gateway-cash">
+                                <i class="bi bi-cash-coin fs-4 mb-1"></i>
+                                <span class="fw-bold small">Cash on Counter</span>
+                                <span class="text-muted" style="font-size: 0.68rem;">Physical Cash</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Gateway Specific Interactive Sections -->
+                <div class="border rounded-3 p-3 mb-4 bg-white shadow-sm" id="gateway-details-container">
+                    <!-- 1. UPI QR Panel (Active by default) -->
+                    <div id="panel-upi-qr" class="gateway-panel">
+                        <div class="row align-items-center g-3">
+                            <div class="col-12 col-md-5 text-center border-end-md">
+                                <div class="p-2 border rounded-3 d-inline-block bg-white shadow-sm mb-2" id="upi-qr-wrapper">
+                                    <img id="upi-qr-image" src="" alt="Dynamic UPI QR" style="width: 170px; height: 170px; object-fit: contain;" class="d-block mx-auto rounded">
+                                    <div id="upi-qr-spinner" class="d-none py-5">
+                                        <div class="spinner-border text-success" role="status"></div>
+                                        <div class="small text-muted mt-2">Generating Dynamic QR...</div>
+                                    </div>
+                                </div>
+                                <div class="small fw-semibold text-success d-flex align-items-center justify-content-center gap-1">
+                                    <i class="bi bi-clock-history animate-pulse-danger"></i>
+                                    <span>QR Expires in: <strong id="upi-timer" class="text-danger">04:59</strong></span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-7">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="badge bg-success-subtle text-success fw-bold px-2 py-1">NPCI Bharat UPI</span>
+                                    <span class="badge bg-light text-dark border">Zero Gateway Fee</span>
+                                </div>
+                                <h6 class="fw-bold mb-1">Scan &amp; Pay via any UPI App</h6>
+                                <p class="text-muted small mb-2">Customer scans with <strong>Google Pay</strong>, <strong>PhonePe</strong>, <strong>Paytm</strong>, or <strong>BHIM</strong>.</p>
+                                
+                                <div class="p-2 bg-light rounded-2 font-monospace small mb-3">
+                                    <span class="text-muted">UPI VPA:</span> <strong id="upi-vpa-display" class="text-dark">freshmart.kochi@okaxis</strong>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold text-secondary">Bank UTR / Transaction Reference (Optional/Auto)</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                                        <input type="text" class="form-control" id="modal-upi-utr" placeholder="12-digit UTR from customer app">
+                                        <button class="btn btn-outline-success" type="button" id="btn-simulate-upi-pay" title="Simulate payment confirmation for testing">
+                                            <i class="bi bi-lightning-charge-fill me-1"></i>Simulate Scan
+                                        </button>
+                                    </div>
+                                    <div class="form-text small" style="font-size: 0.72rem;">Click "Simulate Scan" to test instant customer UPI payment.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Razorpay Panel -->
+                    <div id="panel-razorpay" class="gateway-panel d-none">
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary px-2 py-1 fw-bold fs-6">Razorpay</span>
+                                <span class="badge bg-light text-secondary border" id="razorpay-mode-badge">TEST MODE</span>
+                            </div>
+                            <span class="text-muted small">Cards &bull; NetBanking &bull; UPI &bull; Wallets</span>
+                        </div>
+                        <p class="text-muted small mb-3">
+                            Collect payment via <strong>Razorpay Checkout</strong> (supports UPI, Cards, NetBanking &amp; Wallets). In test mode, you can launch checkout or simulate instant approval.
+                        </p>
+
+                        <div class="p-2.5 bg-light rounded-3 mb-3 border font-monospace small">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Key ID:</span>
+                                <span id="razorpay-key-display" class="text-dark fw-bold text-truncate" style="max-width: 250px;">rzp_test_freshmart12345</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Gateway Status:</span>
+                                <span id="razorpay-status-pill" class="badge bg-success-subtle text-success">READY</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-primary flex-grow-1 py-2 fw-bold d-flex align-items-center justify-content-center gap-2" id="btn-launch-razorpay">
+                                <i class="bi bi-shield-check fs-5"></i>
+                                <span>Launch Razorpay Checkout</span>
+                            </button>
+                            <button type="button" class="btn btn-outline-success py-2 fw-bold d-flex align-items-center justify-content-center gap-2" id="btn-simulate-razorpay" title="Simulate payment approval without live credentials">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                                <span>Simulate Pay (Test)</span>
+                            </button>
+                        </div>
+                        <div class="mt-2 text-center" id="razorpay-payment-status"></div>
+                    </div>
+
+                    <!-- 3. Stripe Panel -->
+                    <div id="panel-stripe" class="gateway-panel d-none">
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-info text-dark px-2 py-1 fw-bold fs-6">Stripe</span>
+                                <span class="badge bg-light text-secondary border" id="stripe-mode-badge">TEST MODE</span>
+                            </div>
+                            <span class="text-muted small"><i class="bi bi-lock-fill text-success me-1"></i>256-Bit Encrypted</span>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-secondary">Cardholder Name</label>
+                                <input type="text" class="form-control form-control-sm" id="stripe-cardholder" placeholder="Name on Card" value="Arun Kumar">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-secondary">Card Number</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                                    <input type="text" class="form-control font-monospace" id="stripe-card-number" placeholder="4242 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 4242" value="4242 4242 4242 4242" maxlength="19">
+                                    <span class="input-group-text bg-white text-primary fw-bold" id="stripe-card-brand">VISA</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-secondary">Expiry Date</label>
+                                <input type="text" class="form-control form-control-sm text-center font-monospace" id="stripe-card-expiry" placeholder="MM/YY" value="12/28" maxlength="5">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-secondary">CVV / CVC</label>
+                                <input type="password" class="form-control form-control-sm text-center font-monospace" id="stripe-card-cvv" placeholder="CVC" value="123" maxlength="4">
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-info text-dark w-100 py-2 fw-bold mt-2 d-flex align-items-center justify-content-center gap-2" id="btn-process-stripe">
+                            <i class="bi bi-credit-card-2-front-fill"></i>
+                            <span>Authorize &amp; Pay with Stripe</span>
+                        </button>
+                        <div class="mt-2 text-center" id="stripe-payment-status"></div>
+                    </div>
+
+                    <!-- 4. Card POS EDC Terminal Panel -->
+                    <div id="panel-card-pos" class="gateway-panel d-none">
+                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                            <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                                <i class="bi bi-credit-card text-warning fs-5"></i>Counter Card Swipe / Tap Terminal
+                            </h6>
+                            <span class="badge bg-light text-dark border">Pine Labs / Paytm POS</span>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-semibold text-secondary">Card Network</label>
+                                <select class="form-select form-select-sm" id="pos-card-network">
+                                    <option value="RuPay">RuPay Debit / Credit</option>
+                                    <option value="Visa" selected>Visa</option>
+                                    <option value="Mastercard">Mastercard</option>
+                                    <option value="Amex">American Express</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-semibold text-secondary">Bank Approval / RRN Code</label>
+                                <input type="text" class="form-control form-control-sm font-monospace" id="pos-terminal-rrn" placeholder="e.g. 984712 (from terminal slip)">
+                            </div>
+                        </div>
+                        <div class="small text-muted mt-2">
+                            Swipe or tap the customer's card on the physical counter machine, then enter the printed receipt RRN code.
+                        </div>
+                    </div>
+
+                    <!-- 5. Cash Panel -->
+                    <div id="panel-cash" class="gateway-panel d-none">
+                        <div class="row g-2">
+                            <div class="col-12 col-md-6">
+                                <label for="modal-tendered-amount" class="form-label fw-semibold small text-secondary">Cash Tendered by Customer (₹)</label>
+                                <input type="number" class="form-control form-control-lg fw-bold text-dark" id="modal-tendered-amount" placeholder="0.00" step="10">
+                                <div class="d-flex gap-1 mt-2 flex-wrap">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 quick-cash-btn" data-amt="100">₹100</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 quick-cash-btn" data-amt="200">₹200</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 quick-cash-btn" data-amt="500">₹500</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 quick-cash-btn" data-amt="1000">₹1000</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2.5 quick-cash-btn" data-amt="2000">₹2000</button>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold small text-secondary">Change Due to Customer</label>
+                                <div class="form-control form-control-lg bg-light fw-extrabold text-primary d-flex align-items-center" id="modal-change-amount">₹0.00</div>
+                                <div class="small text-muted mt-2">Change is automatically calculated based on cash tendered.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. Online Payment Gateway Panel (Mock / Live) -->
+                    <div id="panel-online" class="gateway-panel d-none">
+                        <div class="p-3 text-center">
+                            <div class="d-inline-flex align-items-center gap-2 mb-2 p-2 px-3 bg-light rounded-pill border">
+                                <span class="spinner-grow spinner-grow-sm text-success" role="status"></span>
+                                <span class="small fw-semibold text-dark">Mock Online Payment Gateway Active</span>
+                            </div>
+                            <h6 class="fw-bold mb-1">Instant Online Checkout</h6>
+                            <p class="text-muted small mb-3">Initiate checkout via Mock/Live payment gateway. Creates order and completes transaction upon verification.</p>
+
+                            <div class="p-3 bg-light rounded-3 font-monospace small mb-3 text-start mx-auto" style="max-width: 440px;">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">Gateway Mode:</span>
+                                    <span class="badge bg-success-subtle text-success">MOCK ONLINE</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">Order ID:</span>
+                                    <span id="online-order-id-display" class="text-dark">Ready on checkout</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Payment Status:</span>
+                                    <span id="online-order-status-badge" class="badge bg-secondary">PENDING</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary d-inline-flex align-items-center gap-2 px-4" type="button" id="btn-mock-online-pay">
+                                <i class="bi bi-shield-check"></i>
+                                <span>Pay via Online Gateway</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cashier & Customer Info Form -->
                 <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label for="modal-customer-name" class="form-label fw-semibold small text-secondary">Customer Name</label>
-                        <input type="text" class="form-control" id="modal-customer-name" placeholder="Walk-in Customer" value="Walk-in Customer">
+                    <!-- Cashier Name (Required) -->
+                    <div class="col-12 col-md-4">
+                        <label for="modal-cashier-name" class="form-label fw-semibold small text-secondary">
+                            <i class="bi bi-person-badge text-primary me-1"></i>Cashier Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control form-control-sm fw-medium" id="modal-cashier-name" placeholder="Cashier Name (e.g. Arun)" required>
+                        <div class="invalid-feedback">Please enter Cashier Name!</div>
                     </div>
-                    <div class="col-6">
+
+                    <div class="col-12 col-md-4">
+                        <label for="modal-customer-name" class="form-label fw-semibold small text-secondary">Customer Name</label>
+                        <input type="text" class="form-control form-control-sm" id="modal-customer-name" placeholder="Walk-in Customer" value="Walk-in Customer">
+                    </div>
+
+                    <div class="col-12 col-md-4">
                         <label for="modal-customer-phone" class="form-label fw-semibold small text-secondary">Mobile (+91)</label>
-                        <input type="text" class="form-control" id="modal-customer-phone" placeholder="e.g. 98470 12345">
+                        <input type="text" class="form-control form-control-sm" id="modal-customer-phone" placeholder="e.g. 98470 12345">
                     </div>
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-0">
                     <label for="modal-notes" class="form-label fw-semibold small text-secondary">Bill Notes (Optional)</label>
-                    <input type="text" class="form-control" id="modal-notes" placeholder="e.g. Counter 1, Festival promo">
+                    <input type="text" class="form-control form-control-sm" id="modal-notes" placeholder="e.g. Counter #1, Kerala Festival Promo">
                 </div>
             </div>
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary-gradient px-4" id="pos-confirm-pay-btn">
+
+            <div class="modal-footer bg-light d-flex flex-column flex-sm-row justify-content-end gap-2">
+                <button type="button" class="btn btn-light w-100 w-sm-auto" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary-gradient px-4 py-2 fw-bold w-100 w-sm-auto" id="pos-confirm-pay-btn">
                     <i class="bi bi-check2-circle me-2"></i>Complete &amp; Print Bill
                 </button>
             </div>
@@ -203,17 +465,25 @@
 <!-- Sale Success Modal -->
 <div class="modal fade" id="saleSuccessModal" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4 text-center p-4">
+        <div class="modal-content border-0 shadow-lg rounded-4 text-center p-3 p-sm-4">
             <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
                 <i class="bi bi-check-lg fs-1"></i>
             </div>
-            <h4 class="fw-bold text-dark mb-1">Transaction Successful!</h4>
-            <p class="text-muted small mb-3">Invoice generated and inventory updated</p>
+            <h4 class="fw-bold text-dark mb-1">Payment Successful!</h4>
+            <p class="text-muted small mb-3">Invoice generated and inventory updated in real-time</p>
 
             <div class="bg-light p-3 rounded-3 text-start mb-4">
                 <div class="d-flex justify-content-between mb-1">
                     <span class="text-muted small">Invoice Number:</span>
-                    <span class="fw-bold text-dark" id="success-invoice-no">INV-2026</span>
+                    <span class="fw-bold text-dark font-monospace" id="success-invoice-no">INV-2026</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted small">Payment Gateway:</span>
+                    <span class="badge bg-success-subtle text-success fw-bold" id="success-gateway">Dynamic UPI QR</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted small">Transaction Ref / ID:</span>
+                    <span class="fw-bold text-primary small font-monospace text-truncate" style="max-width: 180px;" id="success-txn-id">UPI-UTR-984712</span>
                 </div>
                 <div class="d-flex justify-content-between mb-1">
                     <span class="text-muted small">Cashier:</span>
@@ -223,17 +493,17 @@
                     <span class="text-muted small">Total Paid:</span>
                     <span class="fw-bold text-success" id="success-total">₹0.00</span>
                 </div>
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between" id="success-change-row">
                     <span class="text-muted small">Change Returned:</span>
                     <span class="fw-bold text-primary" id="success-change">₹0.00</span>
                 </div>
             </div>
 
-            <div class="d-flex gap-2">
-                <button type="button" class="btn btn-light flex-grow-1" data-bs-dismiss="modal">
-                    <i class="bi bi-plus-lg me-1"></i>New Bill
+            <div class="d-flex flex-column flex-sm-row gap-2">
+                <button type="button" class="btn btn-light w-100 w-sm-auto flex-grow-1" data-bs-dismiss="modal">
+                    <i class="bi bi-plus-lg me-1"></i>New Sale
                 </button>
-                <a href="#" id="success-print-link" class="btn btn-primary-gradient flex-grow-1" target="_blank">
+                <a href="#" id="success-print-link" class="btn btn-primary-gradient w-100 w-sm-auto flex-grow-1" target="_blank">
                     <i class="bi bi-printer-fill me-1"></i>Print Tax Invoice
                 </a>
             </div>
@@ -241,8 +511,349 @@
     </div>
 </div>
 
+<!-- Razorpay Official Clone Simulation Modal -->
+<div class="modal fade" id="razorpayCloneModal" tabindex="-1" aria-labelledby="razorpayCloneModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" style="max-width: 800px;">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="row g-0">
+                <!-- Left Sidebar: Merchant & Order Details -->
+                <div class="col-12 col-md-4 p-4 text-white d-flex flex-column justify-content-between rzp-sidebar" style="min-height: 480px;">
+                    <div style="position: relative; z-index: 2;">
+                        <!-- Razorpay Brand Header -->
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rzp-shield-icon">
+                                    <i class="bi bi-shield-fill-check fs-5"></i>
+                                </div>
+                                <span class="fw-bold tracking-wide fs-5" style="letter-spacing: -0.5px;">Razorpay</span>
+                            </div>
+                            <span class="badge bg-warning text-dark fw-bold px-2 py-1" style="font-size: 0.68rem; letter-spacing: 0.5px;">SIMULATOR</span>
+                        </div>
+
+                        <!-- Merchant Information -->
+                        <div class="mb-4">
+                            <span class="text-white-50 small text-uppercase fw-semibold" style="font-size: 0.72rem;">Merchant</span>
+                            <h6 class="fw-bold text-white mb-0">FreshMart Supermarket</h6>
+                            <div class="text-white-50 small" style="font-size: 0.78rem;">Kochi, Kerala</div>
+                        </div>
+
+                        <!-- Amount Banner -->
+                        <div class="rzp-amount-card mb-4">
+                            <span class="text-white-50 small text-uppercase fw-semibold d-block" style="font-size: 0.7rem;">Amount Due</span>
+                            <h2 class="fw-extrabold text-white mb-0" id="rzp-clone-amount">₹0.00</h2>
+                            <div class="text-white-50 small mt-1 font-monospace" style="font-size: 0.72rem;">
+                                Order: <span id="rzp-clone-order-id" class="text-light">order_mock...</span>
+                            </div>
+                        </div>
+
+                        <!-- Customer Details -->
+                        <div class="small text-white-50" style="font-size: 0.78rem;">
+                            <div><i class="bi bi-person me-1.5"></i><span id="rzp-clone-customer-name" class="text-light">Walk-in Customer</span></div>
+                            <div class="mt-1"><i class="bi bi-telephone me-1.5"></i><span id="rzp-clone-customer-phone" class="text-light">+91 98470 12345</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Security Badge -->
+                    <div class="pt-3 border-top small text-white-50" style="font-size: 0.7rem; border-color: rgba(255, 255, 255, 0.1) !important;">
+                        <i class="bi bi-lock-fill text-success me-1"></i>100% Secure &bull; PCI-DSS Level 1 Compliant
+                    </div>
+                </div>
+
+                <!-- Right Content Area: Payment Methods & Tabs -->
+                <div class="col-12 col-md-8 p-0 bg-white d-flex flex-column" style="min-height: 480px;">
+                    <!-- Modal Header with Title & Close -->
+                    <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+                        <span class="fw-bold text-dark small text-uppercase" id="rzp-clone-header-title">Select Payment Option</span>
+                        <button type="button" class="btn-close" id="btn-rzp-clone-close" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Main View: Payment Methods -->
+                    <div id="rzp-clone-main-view" class="p-4 flex-grow-1 d-flex flex-column justify-content-between">
+                        <!-- Navigation Tabs (UPI, Cards, NetBanking, Wallets) -->
+                        <ul class="nav nav-pills nav-fill mb-3 bg-light p-1 rounded-3 gap-1" id="rzp-clone-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active small py-2 fw-semibold" id="rzp-tab-upi-btn" data-bs-toggle="pill" data-bs-target="#rzp-tab-upi" type="button" role="tab">
+                                    <i class="bi bi-qr-code-scan me-1"></i>UPI / QR
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link small py-2 fw-semibold" id="rzp-tab-card-btn" data-bs-toggle="pill" data-bs-target="#rzp-tab-card" type="button" role="tab">
+                                    <i class="bi bi-credit-card me-1"></i>Cards
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link small py-2 fw-semibold" id="rzp-tab-nb-btn" data-bs-toggle="pill" data-bs-target="#rzp-tab-nb" type="button" role="tab">
+                                    <i class="bi bi-bank me-1"></i>NetBanking
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link small py-2 fw-semibold" id="rzp-tab-wallet-btn" data-bs-toggle="pill" data-bs-target="#rzp-tab-wallet" type="button" role="tab">
+                                    <i class="bi bi-wallet2 me-1"></i>Wallets
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content Body -->
+                        <div class="tab-content" id="rzp-clone-tab-content">
+                            <!-- 1. UPI Tab -->
+                            <div class="tab-pane fade show active" id="rzp-tab-upi" role="tabpanel">
+                                <div class="text-center mb-3">
+                                    <div class="rzp-qr-box mb-2">
+                                        <img id="rzp-clone-upi-qr" src="" alt="Dynamic UPI QR" style="width: 140px; height: 140px; object-fit: contain; display: block;">
+                                        <div class="rzp-laser-beam"></div>
+                                    </div>
+                                    <div class="small fw-semibold text-secondary">Scan with Google Pay, PhonePe, Paytm, or BHIM</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold text-muted text-uppercase mb-1" style="font-size: 0.72rem;">Or choose instant UPI App</label>
+                                    <div class="row g-2">
+                                        <div class="col-3">
+                                            <button type="button" class="btn btn-outline-light border text-dark w-100 py-2 px-1 d-flex flex-column align-items-center rzp-quick-app-btn active-app" data-vpa="shopper@okaxis" data-app="Google Pay">
+                                                <i class="bi bi-google text-primary fs-5"></i>
+                                                <span style="font-size: 0.68rem;" class="fw-bold mt-1">GPay</span>
+                                            </button>
+                                        </div>
+                                        <div class="col-3">
+                                            <button type="button" class="btn btn-outline-light border text-dark w-100 py-2 px-1 d-flex flex-column align-items-center rzp-quick-app-btn" data-vpa="shopper@ybl" data-app="PhonePe">
+                                                <i class="bi bi-phone-fill fs-5" style="color: #673ab7;"></i>
+                                                <span style="font-size: 0.68rem;" class="fw-bold mt-1">PhonePe</span>
+                                            </button>
+                                        </div>
+                                        <div class="col-3">
+                                            <button type="button" class="btn btn-outline-light border text-dark w-100 py-2 px-1 d-flex flex-column align-items-center rzp-quick-app-btn" data-vpa="shopper@paytm" data-app="Paytm">
+                                                <i class="bi bi-wallet-fill text-info fs-5"></i>
+                                                <span style="font-size: 0.68rem;" class="fw-bold mt-1">Paytm</span>
+                                            </button>
+                                        </div>
+                                        <div class="col-3">
+                                            <button type="button" class="btn btn-outline-light border text-dark w-100 py-2 px-1 d-flex flex-column align-items-center rzp-quick-app-btn" data-vpa="shopper@upi" data-app="BHIM UPI">
+                                                <i class="bi bi-shield-check text-success fs-5"></i>
+                                                <span style="font-size: 0.68rem;" class="fw-bold mt-1">BHIM</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold text-secondary mb-1">Customer UPI ID</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="bi bi-at"></i></span>
+                                        <input type="text" class="form-control font-monospace" id="rzp-clone-vpa" placeholder="username@bank" value="freshmart.shopper@okaxis">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. Cards Tab -->
+                            <div class="tab-pane fade" id="rzp-tab-card" role="tabpanel">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted fw-semibold text-uppercase" style="font-size: 0.72rem;">Card Information</span>
+                                    <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none small text-primary" id="btn-rzp-autofill-card">
+                                        <i class="bi bi-magic me-1"></i>Autofill Test RuPay Card
+                                    </button>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold text-secondary mb-1">Card Number</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                                        <input type="text" class="form-control font-monospace" id="rzp-clone-card-num" placeholder="6074 1234 5678 9010" maxlength="19" value="6074 1234 5678 9010">
+                                        <span class="input-group-text bg-white text-success fw-bold" id="rzp-clone-card-brand">RUPAY</span>
+                                    </div>
+                                </div>
+
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <label class="form-label small fw-semibold text-secondary mb-1">Expiry Date</label>
+                                        <input type="text" class="form-control form-control-sm font-monospace" id="rzp-clone-card-exp" placeholder="MM/YY" maxlength="5" value="12/28">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small fw-semibold text-secondary mb-1">CVV</label>
+                                        <input type="password" class="form-control form-control-sm font-monospace" id="rzp-clone-card-cvv" placeholder="123" maxlength="4" value="888">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold text-secondary mb-1">Cardholder Name</label>
+                                    <input type="text" class="form-control form-control-sm" id="rzp-clone-card-name" placeholder="Name on card" value="Deepak Nair">
+                                </div>
+                            </div>
+
+                            <!-- 3. NetBanking Tab -->
+                            <div class="tab-pane fade" id="rzp-tab-nb" role="tabpanel">
+                                <label class="form-label small fw-semibold text-muted text-uppercase mb-2" style="font-size: 0.72rem;">Select Indian Bank</label>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="rzpNbBank" id="rzp-nb-sbi" value="State Bank of India" checked>
+                                        <label class="btn btn-outline-light border text-dark w-100 py-2 text-center" for="rzp-nb-sbi">
+                                            <div class="fw-bold small text-primary">SBI</div>
+                                            <div class="text-muted" style="font-size: 0.65rem;">State Bank</div>
+                                        </label>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="rzpNbBank" id="rzp-nb-hdfc" value="HDFC Bank">
+                                        <label class="btn btn-outline-light border text-dark w-100 py-2 text-center" for="rzp-nb-hdfc">
+                                            <div class="fw-bold small text-danger">HDFC</div>
+                                            <div class="text-muted" style="font-size: 0.65rem;">HDFC Bank</div>
+                                        </label>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="rzpNbBank" id="rzp-nb-icici" value="ICICI Bank">
+                                        <label class="btn btn-outline-light border text-dark w-100 py-2 text-center" for="rzp-nb-icici">
+                                            <div class="fw-bold small text-warning">ICICI</div>
+                                            <div class="text-muted" style="font-size: 0.65rem;">ICICI Bank</div>
+                                        </label>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="rzpNbBank" id="rzp-nb-axis" value="Axis Bank">
+                                        <label class="btn btn-outline-light border text-dark w-100 py-2 text-center" for="rzp-nb-axis">
+                                            <div class="fw-bold small text-danger">AXIS</div>
+                                            <div class="text-muted" style="font-size: 0.65rem;">Axis Bank</div>
+                                        </label>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="rzpNbBank" id="rzp-nb-kotak" value="Kotak Mahindra Bank">
+                                        <label class="btn btn-outline-light border text-dark w-100 py-2 text-center" for="rzp-nb-kotak">
+                                            <div class="fw-bold small text-danger">KOTAK</div>
+                                            <div class="text-muted" style="font-size: 0.65rem;">Kotak Bank</div>
+                                        </label>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="radio" class="btn-check" name="rzpNbBank" id="rzp-nb-fed" value="Federal Bank">
+                                        <label class="btn btn-outline-light border text-dark w-100 py-2 text-center" for="rzp-nb-fed">
+                                            <div class="fw-bold small text-primary">FEDERAL</div>
+                                            <div class="text-muted" style="font-size: 0.65rem;">Federal Bank</div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4. Wallets Tab -->
+                            <div class="tab-pane fade" id="rzp-tab-wallet" role="tabpanel">
+                                <label class="form-label small fw-semibold text-muted text-uppercase mb-2" style="font-size: 0.72rem;">Available Mobile Wallets</label>
+                                <div class="list-group mb-3">
+                                    <label class="list-group-item d-flex align-items-center gap-3">
+                                        <input class="form-check-input flex-shrink-0" type="radio" name="rzpWallet" value="Paytm Wallet" checked>
+                                        <span class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-wallet2 text-info fs-5"></i>
+                                            <span class="fw-semibold small">Paytm Wallet</span>
+                                        </span>
+                                    </label>
+                                    <label class="list-group-item d-flex align-items-center gap-3">
+                                        <input class="form-check-input flex-shrink-0" type="radio" name="rzpWallet" value="PhonePe Wallet">
+                                        <span class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-phone-fill fs-5" style="color: #673ab7;"></i>
+                                            <span class="fw-semibold small">PhonePe Wallet</span>
+                                        </span>
+                                    </label>
+                                    <label class="list-group-item d-flex align-items-center gap-3">
+                                        <input class="form-check-input flex-shrink-0" type="radio" name="rzpWallet" value="MobiKwik">
+                                        <span class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-lightning-charge-fill text-primary fs-5"></i>
+                                            <span class="fw-semibold small">MobiKwik</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons at bottom of Right Area -->
+                        <div class="pt-3 border-top mt-auto">
+                            <button type="button" class="btn btn-primary w-100 py-2.5 fw-bold d-flex align-items-center justify-content-center gap-2" id="btn-rzp-clone-pay">
+                                <i class="bi bi-lock-fill"></i>
+                                <span>Pay <strong id="rzp-clone-pay-btn-amt">₹0.00</strong></span>
+                            </button>
+                            <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+                                <span class="text-muted" style="font-size: 0.7rem;"><i class="bi bi-info-circle me-1"></i>Razorpay Sandbox Mode</span>
+                                <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none small" id="btn-rzp-clone-simulate-fail">
+                                    Simulate Bank Decline
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3DS Bank OTP View (Hidden initially, shown on click of Pay) -->
+                    <div id="rzp-clone-otp-view" class="p-4 flex-grow-1 d-none d-flex flex-column justify-content-between">
+                        <div>
+                            <!-- Bank Top Banner -->
+                            <div class="d-flex align-items-center justify-content-between pb-3 border-bottom mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle bg-primary text-white p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                        <i class="bi bi-bank"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold small text-dark" id="rzp-otp-bank-name">Issuing Bank &bull; 3D Secure</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Verified by Visa / RuPay Secure</div>
+                                    </div>
+                                </div>
+                                <span class="badge bg-success-subtle text-success">AUTHENTICATING</span>
+                            </div>
+
+                            <p class="text-muted small mb-3">
+                                An OTP has been dispatched to customer registered mobile number <strong>+91 ******1234</strong> for authorization of payment.
+                            </p>
+
+                            <div class="p-3 bg-light rounded-3 mb-3 text-center">
+                                <span class="text-muted small text-uppercase fw-semibold d-block">Transaction Amount</span>
+                                <h3 class="fw-bold text-dark mb-0" id="rzp-otp-amount">₹0.00</h3>
+                                <div class="text-muted small font-monospace mt-1">Merchant: FreshMart Supermarket</div>
+                            </div>
+
+                            <div class="mb-3 text-center">
+                                <label class="form-label small fw-bold text-secondary mb-1">Enter 6-Digit One Time Password (OTP)</label>
+                                <div class="d-flex justify-content-center gap-2" id="rzp-otp-inputs">
+                                    <input type="text" class="form-control form-control-lg text-center font-monospace fw-bold" id="rzp-otp-input" maxlength="6" value="123456" style="max-width: 200px; letter-spacing: 6px;">
+                                </div>
+                                <div class="text-muted small mt-1" style="font-size: 0.72rem;">
+                                    Test OTP: <strong class="text-primary">123456</strong> (Pre-filled for simulation)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <button type="button" class="btn btn-success w-100 py-2.5 fw-bold d-flex align-items-center justify-content-center gap-2" id="btn-rzp-submit-otp">
+                                <i class="bi bi-shield-check fs-5"></i>
+                                <span>Verify OTP &amp; Complete Payment</span>
+                            </button>
+                            <button type="button" class="btn btn-link text-secondary w-100 mt-1 small text-decoration-none" id="btn-rzp-cancel-otp">
+                                Cancel &amp; Return to Payment Methods
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Payment Success Screen -->
+                    <div id="rzp-clone-success-view" class="p-4 flex-grow-1 d-none d-flex flex-column align-items-center justify-content-center text-center rzp-fade-in">
+                        <div class="rzp-success-circle mb-3">
+                            <i class="bi bi-check-lg fs-1"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">Razorpay Payment Approved!</h5>
+                        <p class="text-muted small mb-3">Transaction processed successfully</p>
+
+                        <div class="p-2.5 bg-light rounded-3 font-monospace small mb-4 w-100 text-start" style="max-width: 320px;">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Payment ID:</span>
+                                <strong id="rzp-success-payment-id" class="text-primary">pay_rzp...</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Status:</span>
+                                <span class="badge bg-success">CAPTURED</span>
+                            </div>
+                        </div>
+                        <div class="text-muted small">
+                            <span class="spinner-border spinner-border-sm text-primary me-1"></span>
+                            Finalizing invoice &amp; printing bill...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Scripts -->
 <div th:replace="~{layout/base :: scripts}"></div>
+<!-- Official Razorpay Checkout Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script th:src="@{/js/pos.js}"></script>
 
 </body>

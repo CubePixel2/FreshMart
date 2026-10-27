@@ -12,19 +12,19 @@
 
         <main class="page-container">
             <!-- Action Bar (Hidden on Print) -->
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 no-print" data-aos="fade-down">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3 no-print" data-aos="fade-down">
                 <div>
                     <a th:href="@{/sales}" class="btn btn-outline-secondary btn-sm mb-2">
                         <i class="bi bi-arrow-left me-1"></i>Back to Sales
                     </a>
                     <h3 class="fw-bold mb-0">Retail Tax Invoice</h3>
                 </div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-primary-gradient d-flex align-items-center gap-2" onclick="window.print()">
+                <div class="d-flex flex-wrap gap-2 w-100 w-sm-auto">
+                    <button type="button" class="btn btn-primary-gradient d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0" onclick="window.print()">
                         <i class="bi bi-printer-fill"></i>
                         <span>Print Invoice</span>
                     </button>
-                    <a th:href="@{/pos}" class="btn btn-light d-flex align-items-center gap-2">
+                    <a th:href="@{/pos}" class="btn btn-light d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0">
                         <i class="bi bi-cart-plus"></i>
                         <span>New Sale</span>
                     </a>
@@ -123,8 +123,35 @@
                         <span class="fw-extrabold fs-4 text-success" th:text="${'₹' + #numbers.formatDecimal(sale.grandTotal, 1, 2)}">₹0.00</span>
                     </div>
                     <div class="d-flex justify-content-between text-muted small mt-2">
-                        <span>Payment Mode</span>
-                        <span class="fw-bold text-dark" th:text="${sale.paymentMethod.displayName}">Cash</span>
+                        <span>Payment Gateway / Mode</span>
+                        <span class="fw-bold text-dark">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle me-1" th:if="${sale.paymentGateway == 'UPI_QR' or sale.paymentMethod.name() == 'UPI' or sale.paymentMethod.name() == 'UPI_QR'}">
+                                <i class="bi bi-qr-code-scan me-1"></i>Bharat UPI QR
+                            </span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1" th:if="${sale.paymentGateway == 'RAZORPAY' or sale.paymentMethod.name() == 'RAZORPAY'}">
+                                <i class="bi bi-shield-check me-1"></i>Razorpay Gateway
+                            </span>
+                            <span class="badge bg-info-subtle text-dark border border-info-subtle me-1" th:if="${sale.paymentGateway == 'STRIPE' or sale.paymentMethod.name() == 'STRIPE'}">
+                                <i class="bi bi-credit-card-2-front me-1"></i>Stripe Cards
+                            </span>
+                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle me-1" th:if="${sale.paymentGateway == 'CARD_POS' or sale.paymentMethod.name() == 'CARD' or sale.paymentMethod.name() == 'CARD_POS'}">
+                                <i class="bi bi-credit-card me-1"></i>Card Terminal (EDC)
+                            </span>
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle me-1" th:if="${sale.paymentGateway == 'CASH' or sale.paymentMethod.name() == 'CASH'}">
+                                <i class="bi bi-cash-coin me-1"></i>Cash on Counter
+                            </span>
+                            <span th:text="${sale.paymentMethod.displayName}">Payment Method</span>
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mt-1" th:if="${sale.transactionId}">
+                        <span>Transaction Ref / UTR</span>
+                        <span class="fw-bold font-monospace text-primary" th:text="${sale.transactionId}">TXN-123456</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mt-1">
+                        <span>Payment Status</span>
+                        <span class="badge bg-success text-white fw-bold">
+                            <i class="bi bi-check-circle-fill me-1"></i>PAID
+                        </span>
                     </div>
                     <div class="d-flex justify-content-between text-muted small mt-1">
                         <span>Amount Paid</span>

@@ -11,17 +11,17 @@
         <div th:replace="~{layout/base :: alerts}"></div>
 
         <main class="page-container">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3" data-aos="fade-down">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3" data-aos="fade-down">
                 <div>
                     <h3 class="fw-bold mb-1">Product Inventory</h3>
                     <p class="text-muted mb-0">Manage grocery catalog, pricing, and stock levels (<span th:text="${totalCount}">18</span> products)</p>
                 </div>
-                <div class="d-flex gap-2">
-                    <a th:href="@{/products/low-stock}" class="btn btn-outline-danger d-flex align-items-center gap-2">
+                <div class="d-flex flex-wrap gap-2 w-100 w-sm-auto">
+                    <a th:href="@{/products/low-stock}" class="btn btn-outline-danger d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0">
                         <i class="bi bi-exclamation-triangle-fill"></i>
                         <span>Low Stock Alerts</span>
                     </a>
-                    <a th:href="@{/products/new}" class="btn btn-primary-gradient d-flex align-items-center gap-2" sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/products/new}" class="btn btn-primary-gradient d-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0" sec:authorize="hasRole('ADMIN')">
                         <i class="bi bi-plus-lg"></i>
                         <span>Add Product</span>
                     </a>
@@ -99,8 +99,8 @@
                                     <span th:if="${!p.isOutOfStock() and !p.isLowStock()}" class="badge bg-success-subtle text-success rounded-pill px-3 py-1" th:text="${p.stockQuantity + ' ' + p.unit}">In Stock</span>
                                     <div class="text-muted" style="font-size: 0.7rem;" th:text="${'Min: ' + p.minStockThreshold}">Min: 10</div>
                                 </td>
-                                <td class="text-end">
-                                    <div class="d-flex justify-content-end gap-1">
+                                <td class="text-end" style="min-width: 110px;">
+                                    <div class="d-flex justify-content-end gap-1 flex-nowrap">
                                         <button type="button" class="btn btn-sm btn-light text-primary rounded-circle p-1"
                                                 title="Quick Restock"
                                                 data-bs-toggle="modal"
