@@ -22,18 +22,22 @@ Designed with a SaaS-grade retail POS interface inspired by modern retail checko
 - **Real-Time Low Stock Warning Banner**: Flashing pulse animation (`@keyframes pulse-danger`) alerting managers to depleted inventory.
 - **Recent Invoices Feed**: Quick lookup and link to invoice receipts.
 
-### 3. ⚡ High-Speed POS Billing Terminal
+### 3. ⚡ High-Speed POS Billing Terminal & Payment Gateways
 - **Category Filter Tabs**: Fast instant filtering across Fresh Produce, Dairy & Eggs, Bakery, Beverages, Snacks, Pantry, etc.
 - **Live Search & Barcode Scanner**: Instant product filter by name, or barcode input with `Enter` scanner support.
 - **Dynamic Reactive Cart**:
   - Incremental/decremental quantity controls and line-item deletion.
   - Cart bounce micro-animation on item addition.
-  - Automatic calculation of Subtotal, 5% Tax, Custom Discount, and Grand Total.
-- **Checkout Modal**:
-  - Cash, Card, or UPI / Digital payment method selection.
-  - Live cash tendered and change returned calculator.
-  - Atomic `@Transactional` stock deduction in the database.
-- **Instant Receipt Generation**: Shows invoice number and direct link to printable invoice.
+  - Automatic calculation of Subtotal, 5% Kerala GST (2.5% CGST + 2.5% SGST), Custom Discount, and Grand Total.
+- **Multiple Payment Gateways Integrated**:
+  - 📱 **Dynamic UPI QR Gateway**: Instant on-screen QR code for PhonePe, Google Pay, Paytm, BHIM with 5-minute countdown and UTR verification.
+  - ⚡ **Razorpay Payment Gateway**: All-in-one payment gateway for Credit/Debit Cards, UPI, NetBanking (50+ banks), and Wallets with secure HMAC-SHA256 signature verification.
+  - 💳 **Stripe Card Gateway**: Direct international and domestic card processing with live brand detection (Visa, Mastercard, RuPay, Amex).
+  - 📟 **Counter EDC Card Machine**: Physical terminal swipe/tap with bank authorization/RRN entry.
+  - 💵 **Cash on Counter**: Quick cash shortcut buttons (₹100, ₹200, ₹500, ₹1000, ₹2000) with automatic change due calculation.
+- **Dedicated Payment Gateways Settings Hub (`/settings/payment-gateways`)**:
+  - Configure Razorpay API keys, Stripe publishable/secret keys, merchant UPI VPA, and toggle test/live mode.
+- **Instant Receipt Generation**: Shows invoice number, cashier name, payment gateway badge, transaction ref ID, and direct link to printable invoice.
 
 ### 4. 📦 Product & Inventory Management
 - Full CRUD: Add, Edit, Delete (Admin) and Search products.
